@@ -72,4 +72,8 @@
       "rlig" 1,
       "calt" 1;
   }
+
+  .title-bar {
+    -webkit-app-region: drag;
+  }
 }
