@@ -1,5 +1,6 @@
 import { ipcMain, type BrowserWindow } from "electron";
 import { CLOSE_WINDOW, MAX_WINDOW, MIN_WINDOW } from "./types";
+import { audioListeners } from "./audio";
 
 export function windowEventListeners(mainWindow: BrowserWindow) {
   ipcMain.handle(MIN_WINDOW, () => {
@@ -17,4 +18,6 @@ export function windowEventListeners(mainWindow: BrowserWindow) {
   ipcMain.handle(CLOSE_WINDOW, () => {
     mainWindow.close();
   });
+
+  audioListeners();
 }

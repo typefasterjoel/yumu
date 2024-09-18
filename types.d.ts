@@ -5,6 +5,10 @@ interface YumuWindow {
   setAudioDevice: (
     deviceId: string,
   ) => Promise<{ success: boolean; error?: string }>;
+  getAudioDevices: () => Promise<{
+    success: boolean;
+    devices: MediaDeviceInfo[];
+  }>;
 }
 
 declare interface Window {

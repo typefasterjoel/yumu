@@ -18,32 +18,47 @@ function SettingsMenu() {
   const { toast } = useToast();
 
   useEffect(() => {
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      const audioOnly = devices.filter(
-        (device) => device.kind === "audiooutput",
-      );
-      setDevices(audioOnly);
-    });
+    const getDevices = async () => {
+      try {
+        const devices = await window.yumuWindow.getAudioDevices();
+        if (devices.success) {
+          setDevices(devices.devices);
+        }
+      } catch (error) {
+        console.error("Error getting audio devices:", error);
+        toast({
+          title: "Error",
+          description:
+            "Failed to get audio devices. Please check your browser permissions.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    getDevices();
   }, []);
 
   const handleNewDevice = async (deviceId: string) => {
     setIsChangingDevice(true);
     setSelectedDevice(deviceId);
     try {
+      console.log("Attempting to set audio device:", deviceId);
       const result = await window.yumuWindow.setAudioDevice(deviceId);
+      console.log("Result from setAudioDevice:", result);
+
       if (result.success) {
         toast({
           title: "Audio Device Changed",
           description: `Audio output set to ${devices.find((d) => d.deviceId === deviceId)?.label}`,
         });
       } else {
-        throw new Error(result.error);
+        throw new Error(result.error || "Unknown error occurred");
       }
     } catch (error) {
-      console.error("Failed to change audio device: ", error);
+      console.error("Failed to change audio device:", error);
       toast({
         title: "Error",
-        description: `Failed to change audio device: ${(error as Error).message}`,
+        description: `Failed to change audio device: ${(error as Error).message}. Please try refreshing the page or restarting the app.`,
         variant: "destructive",
       });
     } finally {

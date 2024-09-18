@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import {
   CLOSE_WINDOW,
+  GET_AUDIO_DEVICES,
   MAX_WINDOW,
   MIN_WINDOW,
   SET_AUDIO_DEVICE,
@@ -13,5 +14,6 @@ export function exposeWindowContext() {
     close: () => ipcRenderer.invoke(CLOSE_WINDOW),
     setAudioDevice: (deviceId: string) =>
       ipcRenderer.invoke(SET_AUDIO_DEVICE, deviceId),
+    getAudioDevices: () => ipcRenderer.invoke(GET_AUDIO_DEVICES),
   });
 }
