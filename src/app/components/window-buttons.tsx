@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "./ui/button";
-import { Maximize, Minimize2, X } from "lucide-react";
+import { Minus, Square, X } from "lucide-react";
 import {
   closeWindow,
   maximizeWindow,
@@ -16,23 +16,23 @@ function WindowButtons() {
         variant="ghost"
         size="icon"
         onClick={minimizeWindow}
-        className="text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground size-6"
+        className="size-6 text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground"
       >
-        <Minimize2 className="size-4" />
+        <Minus className="size-4" />
       </Button>
       <Button
         variant="ghost"
         size="icon"
         onClick={maximizeWindow}
-        className="text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground size-6"
+        className="size-6 text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground"
       >
-        <Maximize className="size-4" />
+        <Square className="size-4" />
       </Button>
       <Button
         variant="ghost"
         size="icon"
         onClick={closeWindow}
-        className="text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground size-6"
+        className="size-6 text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground"
       >
         <X className="size-4" />
       </Button>
