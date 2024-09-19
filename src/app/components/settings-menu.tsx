@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useToast } from "../hooks/use-toast";
+import { LOCAL_AUDIO_DEVICE_KEY } from "@/ipc/window/types";
 
 function SettingsMenu() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -23,6 +24,14 @@ function SettingsMenu() {
         const devices = await window.yumuWindow.getAudioDevices();
         if (devices.success) {
           setDevices(devices.devices);
+          const savedDeviceId = localStorage.getItem(LOCAL_AUDIO_DEVICE_KEY);
+          if (
+            savedDeviceId &&
+            devices.devices.find((d) => d.deviceId === savedDeviceId)
+          ) {
+            setSelectedDevice(savedDeviceId);
+            handleNewDevice(savedDeviceId);
+          }
         }
       } catch (error) {
         console.error("Error getting audio devices:", error);
@@ -47,9 +56,9 @@ function SettingsMenu() {
       console.log("Result from setAudioDevice:", result);
 
       if (result.success) {
+        localStorage.setItem(LOCAL_AUDIO_DEVICE_KEY, deviceId);
         toast({
-          title: "Audio Device Changed",
-          description: `Audio output set to ${devices.find((d) => d.deviceId === deviceId)?.label}`,
+          title: "Audio Device Changed Successfully",
         });
       } else {
         throw new Error(result.error || "Unknown error occurred");
@@ -72,7 +81,7 @@ function SettingsMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground size-6"
+          className="size-6 text-primary-foreground hover:bg-accent/20 hover:text-primary-foreground"
         >
           <Settings2 className="size-4" />
         </Button>
@@ -81,7 +90,7 @@ function SettingsMenu() {
         <div className="flex flex-col gap-3 divide-y">
           <div className="flex flex-col gap-0">
             <h4 className="text-md font-medium">Settings</h4>
-            <h5 className="text-primary text-xs">
+            <h5 className="text-xs text-primary">
               Quick settings for your music.
             </h5>
           </div>

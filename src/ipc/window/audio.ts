@@ -1,5 +1,9 @@
-import { ipcMain, webContents } from "electron";
-import { GET_AUDIO_DEVICES, SET_AUDIO_DEVICE } from "./types";
+import { BrowserWindow, ipcMain, webContents } from "electron";
+import {
+  GET_AUDIO_DEVICES,
+  LOCAL_AUDIO_DEVICE_KEY,
+  SET_AUDIO_DEVICE,
+} from "./types";
 
 export function audioListeners() {
   ipcMain.handle(GET_AUDIO_DEVICES, async () => {
@@ -81,4 +85,19 @@ export function audioListeners() {
       return { success: false, error: (error as Error).message };
     }
   });
+}
+
+export async function setInitialAudioDevice(mainWindow: BrowserWindow) {
+  try {
+    const result = await mainWindow.webContents.executeJavaScript(`
+      localStorage.getItem('${LOCAL_AUDIO_DEVICE_KEY}');
+    `);
+
+    if (result) {
+      console.log("Setting initial audio device:", result);
+      return await ipcMain.emit(SET_AUDIO_DEVICE, result);
+    }
+  } catch (error) {
+    console.error("Error setting initial audio device:", error);
+  }
 }
