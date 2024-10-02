@@ -1,16 +1,23 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, globalShortcut } from "electron";
 import path from "path";
 import registerListeners from "./ipc/register";
 import { setInitialAudioDevice } from "./ipc/window/audio";
+import {
+  MEDIA_NEXT_TRACK,
+  MEDIA_PLAY_PAUSE,
+  MEDIA_PREV_TRACK,
+} from "./ipc/window/types";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
+let mainWindow: BrowserWindow | null = null;
+
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     titleBarStyle: "hidden",
@@ -42,13 +49,30 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
+};
+
+const registerMediaShortcuts = () => {
+  globalShortcut.register("MediaPlayPause", () => {
+    mainWindow?.webContents.send(MEDIA_PLAY_PAUSE);
+  });
+
+  globalShortcut.register("MediaNextTrack", () => {
+    mainWindow?.webContents.send(MEDIA_NEXT_TRACK);
+  });
+
+  globalShortcut.register("MediaPreviousTrack", () => {
+    mainWindow?.webContents.send(MEDIA_PREV_TRACK);
+  });
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", createWindow);
+app.on("ready", () => {
+  createWindow();
+  registerMediaShortcuts();
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

@@ -10,12 +10,20 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useToast } from "../hooks/use-toast";
-import { LOCAL_AUDIO_DEVICE_KEY } from "@/ipc/window/types";
+import {
+  LOCAL_AUDIO_DEVICE_KEY,
+  LOCAL_DISCORD_RP_ENABLED_KEY,
+} from "@/ipc/window/types";
+import { DiscordLogoIcon } from "@radix-ui/react-icons";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 function SettingsMenu() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
   const [isChangingDevice, setIsChangingDevice] = useState(false);
+  const [isDiscordRPEnabled, setIsDiscordRPEnabled] = useState(false);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,15 +53,16 @@ function SettingsMenu() {
     };
 
     getDevices();
+    const discordRPEnabled =
+      localStorage.getItem(LOCAL_DISCORD_RP_ENABLED_KEY) === "true";
+    setIsDiscordRPEnabled(discordRPEnabled);
   }, []);
 
   const handleNewDevice = async (deviceId: string) => {
     setIsChangingDevice(true);
     setSelectedDevice(deviceId);
     try {
-      console.log("Attempting to set audio device:", deviceId);
       const result = await window.yumuWindow.setAudioDevice(deviceId);
-      console.log("Result from setAudioDevice:", result);
 
       if (result.success) {
         localStorage.setItem(LOCAL_AUDIO_DEVICE_KEY, deviceId);
@@ -75,6 +84,17 @@ function SettingsMenu() {
     }
   };
 
+  const handleDiscordToggle = async (checked: boolean) => {
+    setIsDiscordRPEnabled(checked);
+    localStorage.setItem(LOCAL_DISCORD_RP_ENABLED_KEY, checked.toString());
+    window.yumuWindow.toggleDiscordRichPresence(checked);
+    toast({
+      title: checked
+        ? "Discord Rich Presence Enabled"
+        : "Discord Rich Presence Disabled",
+    });
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -87,7 +107,7 @@ function SettingsMenu() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end" side="bottom">
-        <div className="flex flex-col gap-3 divide-y">
+        <div className="flex flex-col gap-4 divide-y">
           <div className="flex flex-col gap-0">
             <h4 className="text-md font-medium">Settings</h4>
             <h5 className="text-xs text-primary">
@@ -115,6 +135,22 @@ function SettingsMenu() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex flex-col gap-0">
+            <h6 className="mb-2 mt-2 flex items-center gap-1 text-base font-medium">
+              <DiscordLogoIcon className="size-4" />
+              Discord Rich Presence
+            </h6>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="discord-rich-presence"
+                checked={isDiscordRPEnabled}
+                onCheckedChange={handleDiscordToggle}
+              />
+              <Label htmlFor="discord-rich-presence">
+                Enable Discord Rich Presence
+              </Label>
+            </div>
           </div>
         </div>
       </PopoverContent>

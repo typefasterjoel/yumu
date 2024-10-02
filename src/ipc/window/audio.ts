@@ -48,8 +48,6 @@ export function audioListeners() {
         throw new Error("Webview not found");
       }
 
-      console.log("Attempting to set audio device:", deviceId);
-
       // Execute the setAudioDevice function in the webview's context
       const result = await webview.executeJavaScript(`
         (async () => {
@@ -57,7 +55,6 @@ export function audioListeners() {
             await navigator.mediaDevices.getUserMedia({ audio: true });
             const devices = await navigator.mediaDevices.enumerateDevices();
             const selectedDevice = devices.find((device) => device.deviceId === '${deviceId}');
-            console.log("from webview:", selectedDevice)
             const audio = document.querySelector('video, audio');
             if (!audio) {
               console.error('No audio element found');
@@ -68,7 +65,6 @@ export function audioListeners() {
               return { success: false, error: 'setSinkId is not supported in this browser' };
             }
             await audio.setSinkId(selectedDevice.deviceId);
-            console.log('Audio output set to ' + selectedDevice.label);
             return { success: true };
           } catch (error) {
             console.error('Error setting audio output', error);
@@ -76,8 +72,6 @@ export function audioListeners() {
           }
         })();
       `);
-
-      console.log("Result from webview:", result);
 
       return result;
     } catch (error) {
@@ -94,7 +88,6 @@ export async function setInitialAudioDevice(mainWindow: BrowserWindow) {
     `);
 
     if (result) {
-      console.log("Setting initial audio device:", result);
       return await ipcMain.emit(SET_AUDIO_DEVICE, result);
     }
   } catch (error) {
