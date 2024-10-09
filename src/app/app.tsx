@@ -3,6 +3,9 @@ import WindowButtons from "./components/window-buttons";
 import { Toaster } from "./components/ui/toaster";
 import { LOCAL_DISCORD_RP_ENABLED_KEY, SongInfo } from "@/ipc/window/types";
 
+export const userAgent =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
+
 function App() {
   const webviewRef = useRef<Electron.WebviewTag>(null);
 
@@ -146,6 +149,8 @@ function App() {
           ref={webviewRef}
           src="https://music.youtube.com"
           className="h-full w-full"
+          useragent={userAgent}
+          partition="persist:youtube"
         />
       </div>
       <Toaster />
