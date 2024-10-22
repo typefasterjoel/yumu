@@ -4,8 +4,8 @@ This is an electron app wrapper for YouTube music that helps deal with some miss
 
 ## Current Features
 
-- Audio Output Select - This will allow you to select a different audio output for the program
-- Discord Presence. Display what you're currently listening to to your Discord
+- **Audio Output Select** - This will allow you to select a different audio output for the program
+- **Discord Presence** - Display what you're currently listening to to your Discord
 
 ## For Development
 
