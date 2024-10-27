@@ -20,6 +20,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    frame: false,
     titleBarStyle: "hidden",
     title: "Yumu / YouTube Music Desktop Player",
     webPreferences: {
