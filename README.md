@@ -1,17 +1,34 @@
-# Yumu / Unofficial YouTube Music Application
+# yumu
 
-This is an electron app wrapper for YouTube music that helps deal with some missing features from the web application currently online.
+An Electron application with React and TypeScript
 
-## Current Features
+## Recommended IDE Setup
 
-- **Audio Output Select** - This will allow you to select a different audio output for the program
-- **Discord Presence** - Display what you're currently listening to to your Discord
+- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 
-## For Development
+## Project Setup
 
-If you wish you contribute to the development of this application, you can pull the repo and install it on your machine by running `npm install` to run use the command `npm start`.
+### Install
 
-### Requirements
+```bash
+$ pnpm install
+```
 
-- Node Version - `20.17.0`
-- NPM - `10.8.3`
+### Development
+
+```bash
+$ pnpm dev
+```
+
+### Build
+
+```bash
+# For windows
+$ pnpm build:win
+
+# For macOS
+$ pnpm build:mac
+
+# For Linux
+$ pnpm build:linux
+```

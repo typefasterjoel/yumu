@@ -1,96 +1,36 @@
-import { BrowserWindow, ipcMain, webContents } from "electron";
 import {
+  AUDIO_DEVICES_READY,
   GET_AUDIO_DEVICES,
-  LOCAL_AUDIO_DEVICE_KEY,
+  PRELOAD_AUDIO_DEVICES,
   SET_AUDIO_DEVICE,
-} from "./types";
+  type AudioDevice
+} from '@ipc/types'
+import { type BrowserWindow, ipcMain } from 'electron'
 
-export function audioListeners() {
-  ipcMain.handle(GET_AUDIO_DEVICES, async () => {
-    try {
-      const webview = webContents
-        .getAllWebContents()
-        .find((wc) => wc.getType() === "webview");
+let preloadedAudioDevices: AudioDevice[] = []
+let mainWindow: BrowserWindow | null = null
 
-      if (!webview) {
-        throw new Error("Webview not found");
-      }
-
-      const devices = await webview.executeJavaScript(`
-        (async () => {
-          try {
-            await navigator.mediaDevices.getUserMedia({ audio: true });
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            return devices
-              .filter(device => device.kind === 'audiooutput')
-              .map(device => ({ deviceId: device.deviceId, label: device.label }));
-          } catch (error) {
-            console.error('Error getting audio devices:', error);
-            return [];
-          }
-        })();
-      `);
-
-      return { success: true, devices };
-    } catch (error) {
-      console.error("Error in getAudioDevices:", error);
-      return { success: false, error: (error as Error).message };
-    }
-  });
-
-  ipcMain.handle(SET_AUDIO_DEVICE, async (_, deviceId: string) => {
-    try {
-      const webview = webContents
-        .getAllWebContents()
-        .find((wc) => wc.getType() === "webview");
-
-      if (!webview) {
-        throw new Error("Webview not found");
-      }
-
-      // Execute the setAudioDevice function in the webview's context
-      const result = await webview.executeJavaScript(`
-        (async () => {
-          try {
-            await navigator.mediaDevices.getUserMedia({ audio: true });
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const selectedDevice = devices.find((device) => device.deviceId === '${deviceId}');
-            const audio = document.querySelector('video, audio');
-            if (!audio) {
-              console.error('No audio element found');
-              return { success: false, error: 'No audio element found' };
-            }
-            if (!audio.setSinkId) {
-              console.error('setSinkId is not supported');
-              return { success: false, error: 'setSinkId is not supported in this browser' };
-            }
-            await audio.setSinkId(selectedDevice.deviceId);
-            return { success: true };
-          } catch (error) {
-            console.error('Error setting audio output', error);
-            return { success: false, error: error.toString() };
-          }
-        })();
-      `);
-
-      return result;
-    } catch (error) {
-      console.error("Error in audioListeners:", error);
-      return { success: false, error: (error as Error).message };
-    }
-  });
+export function setAudioMainWindow(window: BrowserWindow) {
+  mainWindow = window
 }
 
-export async function setInitialAudioDevice(mainWindow: BrowserWindow) {
-  try {
-    const result = await mainWindow.webContents.executeJavaScript(`
-      localStorage.getItem('${LOCAL_AUDIO_DEVICE_KEY}');
-    `);
-
-    if (result) {
-      return await ipcMain.emit(SET_AUDIO_DEVICE, result);
+export function audioEventListeners() {
+  ipcMain.handle(PRELOAD_AUDIO_DEVICES, async (_, devices: AudioDevice[]) => {
+    preloadedAudioDevices = devices
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(AUDIO_DEVICES_READY, preloadedAudioDevices)
     }
-  } catch (error) {
-    console.error("Error setting initial audio device:", error);
-  }
+    return preloadedAudioDevices
+  })
+
+  ipcMain.handle(GET_AUDIO_DEVICES, async () => {
+    return preloadedAudioDevices
+  })
+
+  ipcMain.handle(SET_AUDIO_DEVICE, async (_, deviceId: string) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(SET_AUDIO_DEVICE, deviceId)
+    }
+    return deviceId
+  })
 }
