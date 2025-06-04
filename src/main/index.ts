@@ -13,7 +13,7 @@ function createWindow(): void {
     show: false,
     frame: false,
     title: 'Yumu / Unofficial YouTube Music Desktop Application',
-    titleBarStyle: 'hidden',
+    titleBarStyle: 'hiddenInset',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/preload.js'),
@@ -22,6 +22,10 @@ function createWindow(): void {
       webviewTag: true
     }
   })
+
+  if (process.platform === 'darwin') {
+    mainWindow.setWindowButtonVisibility(false)
+  }
 
   setAudioMainWindow(mainWindow)
 
