@@ -1,4 +1,5 @@
 import {
+  DISCORD_GET_STATUS,
   DISCORD_UPDATE_SONG,
   TOGGLE_DISCORD,
   type DiscordActivity,
@@ -62,6 +63,7 @@ export async function clearDiscordActivity() {
 
 export function discordListeners() {
   ipcMain.handle(TOGGLE_DISCORD, async (_, enabled: boolean) => {
+    console.log('Discord presence toggle received:', enabled)
     if (enabled) {
       await initializeDiscordPresence()
     } else {
@@ -72,4 +74,12 @@ export function discordListeners() {
   ipcMain.handle(DISCORD_UPDATE_SONG, async (_, song: SongInfo, state: string) => {
     await updateDiscordActivity(song, state)
   })
+
+  ipcMain.handle(DISCORD_GET_STATUS, () => {
+    return initialized
+  })
+}
+
+export function getDiscordStatus() {
+  return initialized
 }

@@ -7,7 +7,6 @@ import { pathToFileURL } from 'node:url'
 
 export function windowEventListeners(mainWindow: BrowserWindow) {
   ipcMain.handle(MIN_WINDOW, () => {
-    console.log('Minimizing window')
     mainWindow.minimize()
   })
 

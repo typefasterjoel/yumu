@@ -64,6 +64,15 @@ function Settings() {
       })
     }
 
+    const enableDiscord = async () => {
+      const discordStatus = await window.yumu.getDiscordStatus()
+      const discordEnabled = localStorage.getItem(LOCAL_DISCORD_SETTING) === 'true'
+      if (discordEnabled && !discordStatus) {
+        await window.yumu.toggleDiscordPresence(discordEnabled)
+      }
+    }
+    enableDiscord()
+
     return () => {
       if (cleanupListener) {
         cleanupListener()

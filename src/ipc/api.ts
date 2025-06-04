@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import {
   AUDIO_DEVICES_READY,
   CLOSE_WINDOW,
+  DISCORD_GET_STATUS,
   DISCORD_UPDATE_SONG,
   GET_AUDIO_DEVICES,
   MAX_WINDOW,
@@ -22,6 +23,7 @@ export interface YumuIpcApi {
   // Discord methods
   toggleDiscordPresence: (check: boolean) => Promise<{ success: boolean }>
   updateDiscord: (song: SongInfo, state: string) => Promise<void>
+  getDiscordStatus: () => Promise<boolean>
 
   // Yumu UI
   toggleYumuUi: (check: boolean) => Promise<{ enabled: boolean }>
@@ -43,6 +45,7 @@ export default {
   toggleDiscordPresence: (enabled: boolean) => ipcRenderer.invoke(TOGGLE_DISCORD, enabled),
   updateDiscord: (song: SongInfo, state: string) =>
     ipcRenderer.invoke(DISCORD_UPDATE_SONG, song, state),
+  getDiscordStatus: () => ipcRenderer.invoke(DISCORD_GET_STATUS),
   toggleYumuUi: (enabled: boolean) => ipcRenderer.invoke(YUMU_UI_TOGGLE, enabled),
   getYoutubePreloadScriptPath: () => ipcRenderer.invoke(YOUTUBE_PRELOAD_SCRIPT),
   preloadAudioDevices: (devices: AudioDevice[]) =>
