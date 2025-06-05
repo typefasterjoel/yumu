@@ -6,6 +6,11 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+    build: {
+      lib: {
+        entry: resolve(__dirname, 'src/main/index.ts')
+      }
+    },
     resolve: {
       alias: {
         '@ipc': resolve('src/ipc')
