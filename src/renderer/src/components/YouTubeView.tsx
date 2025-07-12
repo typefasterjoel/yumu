@@ -35,7 +35,7 @@ function YouTubeView() {
 
     const handleLoad = () => {
       setWebviewLoaded(true)
-      webview.openDevTools() // TODO: Remove this in production
+      //webview.openDevTools() // TODO: Remove this in production
     }
 
     const handleIPCMessageFromWebview = (event: Electron.IpcMessageEvent) => {

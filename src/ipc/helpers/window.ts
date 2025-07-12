@@ -7,5 +7,6 @@ export async function maximizeWindow() {
 }
 
 export async function closeWindow() {
+  await window.yumu.toggleDiscordPresence(false)
   await window.yumu.close()
 }

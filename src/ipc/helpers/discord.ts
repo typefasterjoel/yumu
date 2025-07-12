@@ -20,7 +20,14 @@ export async function initializeDiscordPresence() {
     discordClient.on('ready', () => {
       initialized = true
     })
-    await discordClient.login()
+    await discordClient.login().catch((error) => {
+      console.error('Failed to login to Discord RPC. Is the client ID correct?', error)
+      if (!initialized) {
+        setTimeout(() => {
+          initializeDiscordPresence()
+        }, 10000) // Retry after 10 seconds
+      }
+    })
   } catch (error) {
     console.error('Failed to initialize Discord presence:', error)
   }
@@ -63,8 +70,7 @@ export async function clearDiscordActivity() {
 
 export function discordListeners() {
   ipcMain.handle(TOGGLE_DISCORD, async (_, enabled: boolean) => {
-    console.log('Discord presence toggle received:', enabled)
-    if (enabled) {
+    if (enabled && !initialized) {
       await initializeDiscordPresence()
     } else {
       await clearDiscordActivity()
