@@ -71,7 +71,8 @@
       "esbuild"
     ],
     "ignoredBuiltDependencies": [
-      "@tailwindcss/oxide"
+      "@tailwindcss/oxide",
+      "phantomjs-prebuilt"
     ]
   }
 }
