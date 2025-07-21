@@ -23,9 +23,10 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   icon: build/icons/icon.icns
   executableName: Yumu
+  identity: null
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    # - NSCameraUsageDescription: Application requests access to the device's camera.
+    # - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
@@ -34,16 +35,14 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
-  category: Utility
+  maintainer: typefasterjoel.com
+  category: Music
   icon: build/icons/icon.png
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
-electronDownload:
-  mirror: https://npmmirror.com/mirrors/electron/
+  provider: github
+  owner: typefasterjoel
+  repo: yumu

@@ -20,7 +20,9 @@ jobs:
             artifacts: dist/*.dmg
           - os: ubuntu-latest
             build_cmd: pnpm build:linux
-            artifacts: dist/*.AppImage
+            artifacts: |
+              dist/*.AppImage
+              dist/*.deb
           - os: windows-latest
             build_cmd: pnpm build:win
             artifacts: dist/*.exe
