@@ -12,6 +12,10 @@ const clientId = '1286520235893198899'
 let discordClient: Client | null = null
 let initialized = false
 
+const maxTries = 5
+let currentTry = 0
+const retryDelay = 10000 // 10 seconds
+
 export async function initializeDiscordPresence() {
   if (initialized) return
 
@@ -22,10 +26,11 @@ export async function initializeDiscordPresence() {
     })
     await discordClient.login().catch((error) => {
       console.error('Failed to login to Discord RPC. Is the client ID correct?', error)
-      if (!initialized) {
+      if (!initialized && currentTry < maxTries) {
+        currentTry++
         setTimeout(() => {
           initializeDiscordPresence()
-        }, 10000) // Retry after 10 seconds
+        }, retryDelay)
       }
     })
   } catch (error) {

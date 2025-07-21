@@ -5,6 +5,7 @@ import { Disc3Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 const YOUTUBE_MUSIC_URL = 'https://music.youtube.com/'
+const isDev = import.meta.env.DEV
 
 function YouTubeView() {
   const youtube = useRef<Electron.WebviewTag>(null)
@@ -35,7 +36,9 @@ function YouTubeView() {
 
     const handleLoad = () => {
       setWebviewLoaded(true)
-      //webview.openDevTools() // TODO: Remove this in production
+      if (isDev) {
+        webview.openDevTools()
+      }
     }
 
     const handleIPCMessageFromWebview = (event: Electron.IpcMessageEvent) => {
