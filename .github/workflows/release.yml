@@ -11,15 +11,16 @@ jobs:
 
     strategy:
       matrix:
-        - os: macos-latest
-          build_cmd: pnpm build:mac
-          artifacts: dist/*.dmg
-        - os: ubuntu-latest
-          build_cmd: pnpm build:linux
-          artifacts: dist/*.AppImage
-        - os: windows-latest
-          build_cmd: pnpm build:win
-          artifacts: dist/*.exe
+        include:
+          - os: macos-latest
+            build_cmd: pnpm build:mac
+            artifacts: dist/*.dmg
+          - os: ubuntu-latest
+            build_cmd: pnpm build:linux
+            artifacts: dist/*.AppImage
+          - os: windows-latest
+            build_cmd: pnpm build:win
+            artifacts: dist/*.exe
 
     steps:
       - name: Check out Git repository
