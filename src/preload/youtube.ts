@@ -144,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
     videoElement.addEventListener('timeupdate', () => {
       if (currentSong) {
         currentSong.currentTime = videoElement.currentTime
-        // sendSongUpdate(currentSong, 'playing')
       }
     })
   }
@@ -152,5 +151,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start monitoring for media changes
   attachMediaListeners()
 
-  // setInterval(checkForSongChanges, 5000)
 })
