@@ -176,7 +176,7 @@ function Settings() {
                   onCheckedChange={handleToggleYumuUI}
                 />
                 <Label htmlFor="yumu-ui">Enable Yumu UI</Label> */}
-                <h6 className="font-lg font-semibold">Coming Soon!</h6>
+                <h6 className="font-semibold">Coming Soon!</h6>
               </div>
             </div>
           </div>
