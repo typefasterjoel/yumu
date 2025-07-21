@@ -9,9 +9,31 @@ This is an electron app wrapper for YouTube music that helps deal with some miss
 
 ## For Development
 
-If you wish you contribute to the development of this application, you can pull the repo and install it on your machine by running `npm install` to run use the command `npm start`.
+If you wish you contribute to the development of this application, you can pull the repo and install it on your machine by running `pnpm install` to run use the command `pnpm dev`.
 
-### Requirements
+## Project Setup
 
-- Node Version - `20.17.0`
-- NPM - `10.8.3`
+### Install
+
+```bash
+$ pnpm install
+```
+
+### Development
+
+```bash
+$ pnpm dev
+```
+
+### Build
+
+```bash
+# For windows
+$ pnpm build:win
+
+# For macOS
+$ pnpm build:mac
+
+# For Linux
+$ pnpm build:linux
+```
