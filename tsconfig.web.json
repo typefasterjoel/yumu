@@ -5,8 +5,9 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
     "src/preload/*.d.ts",
-    "src/ipc/**/*"
-, "index.d.ts"  ],
+    "src/ipc/**/*",
+    "index.d.ts"
+  ],
   "compilerOptions": {
     "composite": true,
     "verbatimModuleSyntax": true,

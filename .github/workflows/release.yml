@@ -28,10 +28,10 @@ jobs:
           version: latest
 
       - name: Install dependencies
-        run: pn install
+        run: pnpm install
 
       - name: Build application
-        run: pn build
+        run: pnpm build
         env:
           # These are used by electron-builder
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
