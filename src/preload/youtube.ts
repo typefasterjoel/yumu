@@ -151,5 +151,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start monitoring for media changes
   attachMediaListeners()
 
-  // setInterval(checkForSongChanges, 5000)
 })
