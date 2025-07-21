@@ -1,5 +1,7 @@
 # Yumu / Unofficial YouTube Music Application
 
+[![Release](https://github.com/typefasterjoel/yumu/actions/workflows/release.yml/badge.svg)](https://github.com/typefasterjoel/yumu/actions/workflows/release.yml)
+
 This is an electron app wrapper for YouTube music that helps deal with some missing features from the web application currently online.
 
 ## Current Features
