@@ -144,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
     videoElement.addEventListener('timeupdate', () => {
       if (currentSong) {
         currentSong.currentTime = videoElement.currentTime
-        // sendSongUpdate(currentSong, 'playing')
       }
     })
   }
