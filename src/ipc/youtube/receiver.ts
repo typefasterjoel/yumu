@@ -19,7 +19,18 @@ export async function receiveYouTubeEvents(event: Electron.IpcMessageEvent) {
 
     case 'youtube:song-update': {
       const { songInfo, state } = args[0] as { songInfo: SongInfo; state: 'playing' | 'paused' }
-      console.log('Song update received:', songInfo.title, 'by', songInfo.artist, '- State:', state)
+      console.log(
+        'Song update received:',
+        songInfo.title,
+        'by',
+        songInfo.artist,
+        '- State:',
+        state,
+        'Current Time:',
+        songInfo.currentTime,
+        'Duration:',
+        songInfo.duration
+      )
 
       // Update Discord presence
       window.yumu.updateDiscord(songInfo, state)

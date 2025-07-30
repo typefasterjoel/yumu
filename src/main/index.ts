@@ -4,6 +4,11 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { windowEventListeners } from '@ipc/window/listeners'
 import { setAudioMainWindow } from '@ipc/window/audio'
+import {
+  setMediaKeysMainWindow,
+  registerMediaKeys,
+  unregisterMediaKeys
+} from '@ipc/helpers/media-keys'
 
 function createWindow(): void {
   // Create the browser window.
@@ -28,6 +33,7 @@ function createWindow(): void {
   }
 
   setAudioMainWindow(mainWindow)
+  setMediaKeysMainWindow(mainWindow)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -71,6 +77,9 @@ app.whenReady().then(() => {
 
   createWindow()
 
+  // Register media keys after window is created
+  registerMediaKeys()
+
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -82,6 +91,7 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
+  unregisterMediaKeys()
   app.quit()
 })
 
