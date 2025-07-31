@@ -15,25 +15,37 @@ let initialized = false
 const maxTries = 5
 let currentTry = 0
 const retryDelay = 10000 // 10 seconds
+let isRetrying = false
 
 export async function initializeDiscordPresence() {
-  if (initialized) return
+  if (initialized || isRetrying) return
 
   try {
+    isRetrying = true
     discordClient = new Client({ clientId: clientId })
     discordClient.on('ready', () => {
       initialized = true
+      isRetrying = false
+      currentTry = 0 // Reset try counter on success
     })
+    console.log('Initializing Discord')
     await discordClient.login().catch((error) => {
-      console.error('Failed to login to Discord RPC. Is the client ID correct?', error)
+      console.error('Failed to login to Discord RPC:', error)
       if (!initialized && currentTry < maxTries) {
         currentTry++
         setTimeout(() => {
+          isRetrying = false
           initializeDiscordPresence()
         }, retryDelay)
+      } else {
+        isRetrying = false
+        if (currentTry >= maxTries) {
+          console.error('Max retries reached for Discord RPC initialization.')
+        }
       }
     })
   } catch (error) {
+    isRetrying = false
     console.error('Failed to initialize Discord presence:', error)
   }
 }

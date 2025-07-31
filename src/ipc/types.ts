@@ -22,6 +22,12 @@ export const YUMU_UI_TOGGLE = 'yumu:ui-toggle'
 // Youtube Types
 export const YOUTUBE_PRELOAD_SCRIPT = 'yumu:youtube-preload-script'
 
+// Media Key Types
+export const MEDIA_PLAY_PAUSE = 'media:play-pause'
+export const MEDIA_NEXT_TRACK = 'media:next-track'
+export const MEDIA_PREVIOUS_TRACK = 'media:previous-track'
+export const MEDIA_STOP = 'media:stop'
+
 export type SongInfo = {
   title: string
   artist: string

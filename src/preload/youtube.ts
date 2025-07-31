@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.ytmusic-player-bar .title')?.textContent || 'Unknown Title'
       const artistLine =
         document.querySelector('.ytmusic-player-bar .byline')?.textContent?.split('•') || null
-      const artist = artistLine ? artistLine[0] : 'Unknown Artist'
-      const album = artistLine ? artistLine[1] : 'Unknown Album'
+      const artist = artistLine ? artistLine[0].trim() : 'Unknown Artist'
+      const album = artistLine ? artistLine[1].trim() : 'Unknown Album'
 
       // Get album art
       const albumArtElement = document.querySelector('#song-image #img') as HTMLImageElement
@@ -63,10 +63,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const progressBar = document.querySelector('#progress-bar') as HTMLDivElement
 
-      const durationTime = parseInt(progressBar?.getAttribute('aria-valuemax') || '0')
-      const currentTimeElapsed = parseInt(progressBar?.getAttribute('aria-valuenow') || '0')
+      let durationTime = 0
+      let currentTimeElapsed = 0
 
-      return {
+      if (progressBar) {
+        durationTime = parseInt(progressBar.getAttribute('aria-valuemax')!) || 0
+        currentTimeElapsed = parseInt(progressBar.getAttribute('aria-valuenow')!) || 0
+      }
+
+      const song = {
         title,
         artist,
         album,
@@ -74,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         duration: durationTime,
         currentTime: currentTimeElapsed
       }
+
+      return song
     } catch (error) {
       console.error('Failed to extract song info:', error)
       return null
@@ -110,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Listen for media events
-
   const attachMediaListeners = () => {
     const videoElement = document.querySelector('#song-video video') as HTMLVideoElement
     if (!videoElement) {
@@ -124,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (songInfo) {
         currentSong = songInfo
         sendSongUpdate(songInfo, 'playing')
+
         songCheckInterval = setInterval(checkForSongChanges, 1000)
       }
     })
@@ -136,14 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     videoElement.addEventListener('seeked', () => {
       if (currentSong) {
-        currentSong.currentTime = videoElement.currentTime
+        const progressBar = document.querySelector('#progress-bar') as HTMLDivElement
+        currentSong.currentTime = parseInt(progressBar.getAttribute('aria-valuenow')!) || 0
+        console.log('Seeked to:', currentSong.currentTime)
         sendSongUpdate(currentSong, 'playing')
-      }
-    })
-
-    videoElement.addEventListener('timeupdate', () => {
-      if (currentSong) {
-        currentSong.currentTime = videoElement.currentTime
       }
     })
   }
@@ -151,4 +154,69 @@ document.addEventListener('DOMContentLoaded', () => {
   // Start monitoring for media changes
   attachMediaListeners()
 
+  const observeSongChanges = () => {
+    const playerBar = document.getElementById('progress-bar')
+    if (!playerBar) {
+      setTimeout(observeSongChanges, 1000)
+      return
+    }
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === 'attributes' &&
+          (mutation.attributeName === 'aria-valuenow' || mutation.attributeName === 'aria-valuemax')
+        ) {
+          const songPlaying = extractSongInfo()
+          if (songPlaying && currentSong && currentSong.title !== songPlaying.title) {
+            currentSong = songPlaying
+            setTimeout(() => {
+              const newSong = extractSongInfo()!
+              currentSong = newSong
+              sendSongUpdate(currentSong, 'playing')
+              console.log('Song changed observed:', currentSong.title, 'by', currentSong.artist)
+            }, 1000) // Delay to ensure the DOM is updated
+          }
+        }
+      })
+    })
+
+    observer.observe(playerBar, {
+      attributes: true,
+      attributeFilter: ['aria-valuenow', 'aria-valuemax']
+    })
+  }
+
+  observeSongChanges()
+
+  // Media control functions
+  const playPause = () => {
+    const playButton = document.getElementById('play-pause-button') as HTMLButtonElement
+    if (playButton) {
+      playButton.click()
+    }
+  }
+
+  const nextTrack = () => {
+    const nextButton = document.querySelector(
+      '.next-button, [data-id="next-button"]'
+    ) as HTMLButtonElement
+    if (nextButton) {
+      nextButton.click()
+    }
+  }
+
+  const previousTrack = () => {
+    const prevButton = document.querySelector(
+      '.previous-button, [data-id="previous-button"]'
+    ) as HTMLButtonElement
+    if (prevButton) {
+      prevButton.click()
+    }
+  }
+
+  // Listen for media key events from main process
+  ipcRenderer.on('media:play-pause', playPause)
+  ipcRenderer.on('media:next-track', nextTrack)
+  ipcRenderer.on('media:previous-track', previousTrack)
 })
