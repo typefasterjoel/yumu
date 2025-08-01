@@ -58,6 +58,8 @@ function createWindow(): void {
   windowEventListeners(mainWindow)
 }
 
+app.commandLine.appendSwitch('disable-features', 'MediaSessionService') // Disable MediaSessionService to prevent conflicts with media keys
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.

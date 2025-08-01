@@ -1,5 +1,5 @@
 import { BrowserWindow, globalShortcut } from 'electron'
-import { MEDIA_PLAY_PAUSE, MEDIA_NEXT_TRACK, MEDIA_PREVIOUS_TRACK, MEDIA_STOP } from '@ipc/types'
+import { MEDIA_PLAY_PAUSE, MEDIA_NEXT_TRACK, MEDIA_PREVIOUS_TRACK } from '@ipc/types'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -29,11 +29,6 @@ export function registerMediaKeys() {
       accelerator: 'MediaPreviousTrack',
       event: MEDIA_PREVIOUS_TRACK,
       description: 'Previous Track'
-    },
-    {
-      accelerator: 'MediaStop',
-      event: MEDIA_STOP,
-      description: 'Stop'
     }
   ]
 
