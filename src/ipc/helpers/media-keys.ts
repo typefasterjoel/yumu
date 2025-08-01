@@ -1,5 +1,5 @@
-import { BrowserWindow, globalShortcut } from 'electron'
-import { MEDIA_PLAY_PAUSE, MEDIA_NEXT_TRACK, MEDIA_PREVIOUS_TRACK, MEDIA_STOP } from '@ipc/types'
+import { BrowserWindow, globalShortcut, systemPreferences } from 'electron'
+import { MEDIA_PLAY_PAUSE, MEDIA_NEXT_TRACK, MEDIA_PREVIOUS_TRACK } from '@ipc/types'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -11,6 +11,14 @@ export function registerMediaKeys() {
   if (!mainWindow) {
     console.error('Main window not set for media keys')
     return
+  }
+
+  if (process.platform === 'darwin') {
+    const trusted = systemPreferences.isTrustedAccessibilityClient(false)
+    if (!trusted) {
+      mainWindow.webContents.send('invoke-mac-accessibility-warning-dialog')
+      return
+    }
   }
 
   // Register global shortcuts for media keys
@@ -29,11 +37,6 @@ export function registerMediaKeys() {
       accelerator: 'MediaPreviousTrack',
       event: MEDIA_PREVIOUS_TRACK,
       description: 'Previous Track'
-    },
-    {
-      accelerator: 'MediaStop',
-      event: MEDIA_STOP,
-      description: 'Stop'
     }
   ]
 
