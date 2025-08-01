@@ -1,7 +1,7 @@
 import { discordListeners } from '@ipc/helpers/discord'
 import { CLOSE_WINDOW, MAX_WINDOW, MIN_WINDOW, YOUTUBE_PRELOAD_SCRIPT } from '@ipc/types'
 import { audioEventListeners } from '@ipc/window/audio'
-import { app, ipcMain, type BrowserWindow } from 'electron'
+import { app, ipcMain, systemPreferences, type BrowserWindow } from 'electron'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -40,4 +40,11 @@ export function windowEventListeners(mainWindow: BrowserWindow) {
 
   // Audio
   audioEventListeners()
+
+  // macOS accessibility
+  ipcMain.handle('request-mac-accessibility-warning-dialog', () => {
+    if (process.platform === 'darwin') {
+      systemPreferences.isTrustedAccessibilityClient(true)
+    }
+  })
 }

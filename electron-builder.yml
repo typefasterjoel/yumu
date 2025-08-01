@@ -23,7 +23,8 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   icon: build/icons/icon.icns
   executableName: Yumu
-  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
   extendInfo:
     # - NSCameraUsageDescription: Application requests access to the device's camera.
     # - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
@@ -32,6 +33,7 @@ mac:
   notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}
+  backgroundColor: '#222222'
 linux:
   target:
     - AppImage

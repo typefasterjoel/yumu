@@ -40,6 +40,7 @@ function createWindow(): void {
     if (is.dev) {
       mainWindow.webContents.openDevTools()
     }
+    registerMediaKeys()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -65,7 +66,7 @@ app.commandLine.appendSwitch('disable-features', 'MediaSessionService') // Disab
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.yumu')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -77,16 +78,17 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  createWindow()
-
-  // Register media keys after window is created
-  registerMediaKeys()
-
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  ipcMain.handle('restart-app', async () => {
+    app.quit()
+  })
+
+  createWindow()
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

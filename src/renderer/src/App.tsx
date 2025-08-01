@@ -1,5 +1,6 @@
 import { LOCAL_YUMU_UI_SETTING } from '@ipc/types'
 import ApplicationToolbar from '@renderer/components/ApplicationToolbar'
+import PermissionsDialog from '@renderer/components/PermissionsDialog'
 import YouTubeView from '@renderer/components/YouTubeView'
 import Yumu from '@renderer/Yumu'
 
@@ -12,6 +13,7 @@ function App(): React.JSX.Element {
       <div className="bg-primary relative flex h-full w-full items-center justify-center">
         {customUiEnabled && <Yumu />}
         <YouTubeView />
+        <PermissionsDialog />
       </div>
     </main>
   )
