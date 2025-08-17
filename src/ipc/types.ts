@@ -37,17 +37,6 @@ export type SongInfo = {
   currentTime: number
 }
 
-export type DiscordActivity = {
-  type: number
-  details: string
-  state: string
-  startTimestamp?: number
-  endTimestamp?: number
-  largeImageKey: string
-  largeImageText: string
-  instance: boolean
-}
-
 export type AudioDevice = {
   deviceId: string
   label: string

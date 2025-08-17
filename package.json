@@ -69,7 +69,8 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron",
-      "esbuild"
+      "esbuild",
+      "phantomjs-prebuilt"
     ],
     "ignoredBuiltDependencies": [
       "@tailwindcss/oxide",

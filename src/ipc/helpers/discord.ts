@@ -1,11 +1,5 @@
-import {
-  DISCORD_GET_STATUS,
-  DISCORD_UPDATE_SONG,
-  TOGGLE_DISCORD,
-  type DiscordActivity,
-  type SongInfo
-} from '@ipc/types'
-import { Client } from '@xhayper/discord-rpc'
+import { DISCORD_GET_STATUS, DISCORD_UPDATE_SONG, TOGGLE_DISCORD, type SongInfo } from '@ipc/types'
+import { Client, type SetActivity } from '@xhayper/discord-rpc'
 import { ipcMain } from 'electron'
 
 const clientId = '1286520235893198899'
@@ -54,7 +48,7 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
   if (!initialized) return
 
   try {
-    const activity: DiscordActivity = {
+    const activity: SetActivity = {
       type: 2,
       details: song.title,
       state: `by ${song.artist}`,
@@ -62,6 +56,8 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
       endTimestamp: Date.now() + (song.duration - song.currentTime) * 1000,
       largeImageKey: song.albumArt,
       largeImageText: song.album,
+      smallImageKey: 'yumu-icon',
+      smallImageText: 'Yumu',
       instance: false
     }
 
@@ -70,7 +66,11 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
       activity.endTimestamp = undefined
     }
 
-    await discordClient?.user?.setActivity(activity)
+    try {
+      await discordClient?.user?.setActivity(activity)
+    } catch (error) {
+      console.error('Failed to update Discord activity:', error)
+    }
   } catch (error) {
     console.error('Failed to update Discord activity:', error)
   }
