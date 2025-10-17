@@ -50,6 +50,7 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
   try {
     const activity: SetActivity = {
       type: 2,
+      name: song.artist ? `${song.title} by ${song.artist}` : 'music on Yumu',
       details: song.title,
       state: `by ${song.artist}`,
       startTimestamp: Date.now() - song.currentTime * 1000,
