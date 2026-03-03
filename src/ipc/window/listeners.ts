@@ -19,7 +19,7 @@ export function windowEventListeners(mainWindow: BrowserWindow) {
   })
 
   ipcMain.handle(CLOSE_WINDOW, () => {
-    mainWindow.close()
+    app.quit()
   })
 
   ipcMain.handle(YOUTUBE_PRELOAD_SCRIPT, () => {

@@ -107,7 +107,7 @@ function Settings() {
 
       <Popover onOpenChange={() => setShowOverlay(!showOverlay)}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon-sm">
             <Settings2Icon className="size-4" />
           </Button>
         </PopoverTrigger>
