@@ -4,6 +4,8 @@ import type { SongInfo } from '@ipc/types'
 document.addEventListener('DOMContentLoaded', () => {
   ipcRenderer.sendToHost('youtube:preload-ready', { message: 'YouTube preload script loaded' })
 
+  let currentSinkId = ''
+
   // Get Audio Devices
   const getAudioDevices = async () => {
     try {
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Listen for audio device changes
   ipcRenderer.on('audio:set-device', async (_, deviceId) => {
+    currentSinkId = deviceId
     console.log(`Setting audio output device to: ${deviceId}`)
     const audioElement = document.querySelector('video')
     if (audioElement) {
@@ -33,9 +36,35 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(`Failed to set audio output device: ${error}`)
       }
     } else {
-      console.warn('No audio element found to set sink ID.')
+      console.warn('No audio element found — MutationObserver will apply when element appears.')
     }
   })
+
+  // Re-apply the stored sinkId to a video element when it is inserted or recreated
+  const applyStoredSinkId = async (videoEl: HTMLVideoElement) => {
+    if (!currentSinkId) return
+    if (videoEl.sinkId === currentSinkId) return
+    try {
+      await videoEl.setSinkId(currentSinkId)
+      console.log(`Re-applied sinkId to new video element`)
+    } catch (error) {
+      console.error(`Failed to re-apply sinkId: ${error}`)
+    }
+  }
+
+  const videoObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node instanceof HTMLVideoElement) {
+          applyStoredSinkId(node)
+        } else if (node instanceof Element) {
+          node.querySelectorAll('video').forEach((v) => applyStoredSinkId(v as HTMLVideoElement))
+        }
+      }
+    }
+  })
+
+  videoObserver.observe(document.body, { childList: true, subtree: true })
 
   navigator.mediaDevices.addEventListener('devicechange', () => {
     getAudioDevices()

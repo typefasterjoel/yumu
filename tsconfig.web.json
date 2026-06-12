@@ -12,10 +12,9 @@
     "composite": true,
     "verbatimModuleSyntax": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
-      "@renderer/*": ["src/renderer/src/*"],
-      "@ipc/*": ["src/ipc/*"]
+      "@renderer/*": ["./src/renderer/src/*"],
+      "@ipc/*": ["./src/ipc/*"]
     }
   }
 }

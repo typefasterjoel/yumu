@@ -5,12 +5,11 @@
     "composite": true,
     "moduleResolution": "bundler",
     "types": ["electron-vite/node"],
-    "baseUrl": ".",
     "verbatimModuleSyntax": true,
     "paths": {
-      "@ipc/*": ["src/ipc/*"],
-      "@main/*": ["src/main/*"],
-      "@preload/*": ["src/preload/*"],
+      "@ipc/*": ["./src/ipc/*"],
+      "@main/*": ["./src/main/*"],
+      "@preload/*": ["./src/preload/*"],
     }
   }
 }
