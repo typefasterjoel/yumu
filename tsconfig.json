@@ -3,11 +3,10 @@
   "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }],
   "compilerOptions": {
     "verbatimModuleSyntax": true,
-    "baseUrl": ".",
     "paths": {
-      "@renderer/*": ["src/renderer/src/*"],
-      "@main/*": ["src/main/src/*"],
-      "@ipc/*": ["src/ipc/src/*"],
+      "@renderer/*": ["./src/renderer/src/*"],
+      "@main/*": ["./src/main/src/*"],
+      "@ipc/*": ["./src/ipc/src/*"],
     }
   }
 }
