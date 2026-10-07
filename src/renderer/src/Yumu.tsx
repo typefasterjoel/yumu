@@ -1,5 +1,6 @@
 import { usePlayerStore } from "@ipc/stores/player-store"
 import { sendYtmCommand } from "@ipc/youtube/commands"
+import SearchPanel from "@renderer/components/SearchPanel"
 import { Button } from "@renderer/components/ui/button"
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "lucide-react"
 import { useState } from "react"
@@ -78,6 +79,8 @@ function Yumu() {
           onChange={(e) => sendYtmCommand({ type: "setVolume", volume: Number(e.target.value) })}
         />
       </label>
+
+      <SearchPanel />
     </div>
   )
 }

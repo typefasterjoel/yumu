@@ -1,4 +1,4 @@
-import type { PlayerApiState, YtmCommand } from "@ipc/youtube/bridge"
+import type { InnertubeEndpoint, PlayerApiState, YtmCommand } from "@ipc/youtube/bridge"
 
 /**
  * Runs in the page's main world, where `#movie_player` exposes its player API (the preload's
@@ -24,6 +24,7 @@ export function installYtmMainWorld(): void {
   type Bridge = {
     getState: () => PlayerApiState | null
     command: (command: YtmCommand) => void
+    request: (endpoint: InnertubeEndpoint, body: Record<string, unknown>) => Promise<unknown>
   }
 
   const host = window as unknown as { __yumuBridge?: Bridge }
@@ -57,7 +58,34 @@ export function installYtmMainWorld(): void {
     }
   }
 
+  // Playing a specific track goes through the app's own navigation handler, which is what a
+  // click in the UI uses, so the queue is built by YouTube Music. `ytmusic-app.navigate` and
+  // `movie_player.loadVideoById` don't do this: the first is a silent no-op here and the second
+  // bypasses the queue.
+  const playVideo = (videoId: string, musicVideoType?: string): void => {
+    const app = document.querySelector("ytmusic-app") as
+      (HTMLElement & { handleNavigationEndpoint?: (endpoint: unknown) => void }) | null
+    if (typeof app?.handleNavigationEndpoint !== "function") {
+      console.warn("ytmusic-app.handleNavigationEndpoint is unavailable; cannot play", videoId)
+      return
+    }
+
+    app.handleNavigationEndpoint({
+      watchEndpoint: {
+        videoId,
+        ...(musicVideoType && {
+          watchEndpointMusicSupportedConfigs: { watchEndpointMusicConfig: { musicVideoType } }
+        })
+      }
+    })
+  }
+
   const command = (cmd: YtmCommand): void => {
+    if (cmd.type === "playVideo") {
+      playVideo(cmd.videoId, cmd.musicVideoType)
+      return
+    }
+
     const player = getPlayer()
     if (!player) return
 
@@ -81,5 +109,31 @@ export function installYtmMainWorld(): void {
     }
   }
 
-  host.__yumuBridge = { getState, command }
+  // Calls YouTube Music's own Innertube API from inside the page, so the user's cookies are sent
+  // and the client context comes from the page's `ytcfg` instead of being hardcoded.
+  const request = async (
+    endpoint: InnertubeEndpoint,
+    body: Record<string, unknown>
+  ): Promise<unknown> => {
+    if (!["search", "browse", "next"].includes(endpoint)) {
+      throw new Error(`Unsupported Innertube endpoint: ${endpoint}`)
+    }
+
+    const ytcfg = (window as unknown as { ytcfg?: { get: (key: string) => unknown } }).ytcfg
+    const context = ytcfg?.get("INNERTUBE_CONTEXT")
+    const apiKey = ytcfg?.get("INNERTUBE_API_KEY")
+    if (!context || !apiKey) throw new Error("YouTube Music config (ytcfg) is not ready yet")
+
+    const response = await fetch(`/youtubei/v1/${endpoint}?prettyPrint=false&key=${apiKey}`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ context, ...body })
+    })
+    if (!response.ok) throw new Error(`Innertube ${endpoint} failed with status ${response.status}`)
+
+    return response.json()
+  }
+
+  host.__yumuBridge = { getState, command, request }
 }
