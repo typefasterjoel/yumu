@@ -1,5 +1,13 @@
-import { ipcRenderer } from "electron"
+import { ipcRenderer, webFrame } from "electron"
 import type { SongInfo } from "@ipc/types"
+import {
+  YTM_COMMAND,
+  YTM_PLAYER_STATE,
+  type PlayerApiState,
+  type PlayerSnapshot,
+  type YtmCommand
+} from "@ipc/youtube/bridge"
+import { installYtmMainWorld } from "./ytm-main-world"
 
 document.addEventListener("DOMContentLoaded", () => {
   ipcRenderer.sendToHost("youtube:preload-ready", { message: "YouTube preload script loaded" })
@@ -248,4 +256,87 @@ document.addEventListener("DOMContentLoaded", () => {
   ipcRenderer.on("media:play-pause", playPause)
   ipcRenderer.on("media:next-track", nextTrack)
   ipcRenderer.on("media:previous-track", previousTrack)
+
+  // Yumu bridge: player state out to the custom UI, commands in.
+  webFrame.executeJavaScript(`(${installYtmMainWorld.toString()})()`)
+
+  // Album and art only exist in the DOM, not in the player API.
+  const readDomTrackExtras = () => {
+    const parts = document
+      .querySelector(".ytmusic-player-bar .byline")
+      ?.textContent?.split("•")
+      .map((part) => part.trim())
+    const art = document.querySelector("#song-image #img") as HTMLImageElement | null
+    return { album: parts?.[1] ?? "", albumArt: art?.src ?? "" }
+  }
+
+  let lastVideoId: string | null = null
+
+  const pushPlayerState = async () => {
+    try {
+      const state: PlayerApiState | null = await webFrame.executeJavaScript(
+        "window.__yumuBridge?.getState() ?? null"
+      )
+      if (!state) return
+
+      const snapshot: PlayerSnapshot = { ...state, ...readDomTrackExtras() }
+      ipcRenderer.sendToHost(YTM_PLAYER_STATE, snapshot)
+
+      if (state.videoId !== lastVideoId) {
+        lastVideoId = state.videoId
+        // The DOM metadata trails the player API at a track change; send again once it settles.
+        setTimeout(pushPlayerState, 1000)
+      }
+    } catch (error) {
+      console.error("Failed to push player state:", error)
+    }
+  }
+
+  // Media events don't bubble, but they can be captured on the document, which also covers
+  // video elements YouTube Music creates later.
+  const PLAYER_EVENTS = [
+    "play",
+    "playing",
+    "pause",
+    "waiting",
+    "seeked",
+    "loadedmetadata",
+    "durationchange",
+    "volumechange",
+    "ended"
+  ]
+  for (const eventName of PLAYER_EVENTS) {
+    document.addEventListener(
+      eventName,
+      (event) => {
+        if (event.target instanceof HTMLVideoElement) pushPlayerState()
+      },
+      true
+    )
+  }
+
+  // Position only needs a steady tick while something is playing.
+  setInterval(() => {
+    if (document.querySelector("video")?.paused === false) pushPlayerState()
+  }, 1000)
+
+  ipcRenderer.on(YTM_COMMAND, async (_, command: YtmCommand) => {
+    try {
+      switch (command.type) {
+        // YouTube Music's own queue is driven by its buttons, not `movie_player.nextVideo()`.
+        case "next":
+          nextTrack()
+          break
+        case "previous":
+          previousTrack()
+          break
+        default:
+          await webFrame.executeJavaScript(
+            `window.__yumuBridge?.command(${JSON.stringify(command)})`
+          )
+      }
+    } catch (error) {
+      console.error("Failed to run YouTube Music command:", error)
+    }
+  })
 })

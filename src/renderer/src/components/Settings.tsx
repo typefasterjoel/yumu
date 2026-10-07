@@ -1,9 +1,5 @@
-import {
-  LOCAL_AUDIO_DEVICE_KEY,
-  LOCAL_DISCORD_SETTING,
-  // LOCAL_YUMU_UI_SETTING,
-  type AudioDevice
-} from "@ipc/types"
+import { LOCAL_AUDIO_DEVICE_KEY, LOCAL_DISCORD_SETTING, type AudioDevice } from "@ipc/types"
+import { useUiStore } from "@ipc/stores/ui-store"
 import { Button } from "@renderer/components/ui/button"
 import { Label } from "@renderer/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@renderer/components/ui/popover"
@@ -24,9 +20,8 @@ function Settings() {
   const [isDiscordEnabled, setIsDiscordEnabled] = useState(() => {
     return localStorage.getItem(LOCAL_DISCORD_SETTING) === "true"
   })
-  // const [isYumuUIEnabled, setIsYumuUIEnabled] = useState(() => {
-  //   return localStorage.getItem(LOCAL_YUMU_UI_SETTING) === 'true'
-  // })
+  const isYumuUIEnabled = useUiStore((s) => s.customUiEnabled)
+  const setCustomUiEnabled = useUiStore((s) => s.setCustomUiEnabled)
 
   const [audioDevices, setAudioDevices] = useState<AudioDevice[]>([])
   const [selectedAudioDevice, setSelectedAudioDevice] = useState<AudioDevice["deviceId"]>("")
@@ -87,11 +82,6 @@ function Settings() {
       window.yumu.toggleDiscordPresence(checked)
     }
   }
-
-  // const handleToggleYumuUI = async (checked: boolean) => {
-  //   setIsYumuUIEnabled(checked)
-  //   localStorage.setItem(LOCAL_YUMU_UI_SETTING, String(checked))
-  // }
 
   const handleAudioDeviceChange = async (deviceId: AudioDevice["deviceId"] | null) => {
     if (deviceId === null) return
@@ -179,13 +169,12 @@ function Settings() {
                 </h5>
               </div>
               <div className="mt-1 flex items-center gap-2">
-                {/*<Switch
+                <Switch
                   id="yumu-ui"
                   checked={isYumuUIEnabled}
-                  onCheckedChange={handleToggleYumuUI}
+                  onCheckedChange={setCustomUiEnabled}
                 />
-                <Label htmlFor="yumu-ui">Enable Yumu UI</Label> */}
-                <h6 className="font-semibold">Coming Soon!</h6>
+                <Label htmlFor="yumu-ui">Enable Yumu UI</Label>
               </div>
             </div>
           </div>
