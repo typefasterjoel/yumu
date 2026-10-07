@@ -1,4 +1,6 @@
 import { type AudioDevice, type SongInfo } from "@ipc/types"
+import { usePlayerStore } from "@ipc/stores/player-store"
+import { YTM_PLAYER_STATE, type PlayerSnapshot } from "@ipc/youtube/bridge"
 
 export async function receiveYouTubeEvents(event: Electron.IpcMessageEvent) {
   const { channel, args } = event
@@ -34,6 +36,11 @@ export async function receiveYouTubeEvents(event: Electron.IpcMessageEvent) {
 
       // Update Discord presence
       window.yumu.updateDiscord(songInfo, state)
+      break
+    }
+
+    case YTM_PLAYER_STATE: {
+      usePlayerStore.getState().applySnapshot(args[0] as PlayerSnapshot)
       break
     }
   }

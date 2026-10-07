@@ -1,11 +1,11 @@
-import { LOCAL_YUMU_UI_SETTING } from "@ipc/types"
+import { useUiStore } from "@ipc/stores/ui-store"
 import ApplicationToolbar from "@renderer/components/ApplicationToolbar"
 import PermissionsDialog from "@renderer/components/PermissionsDialog"
 import YouTubeView from "@renderer/components/YouTubeView"
 import Yumu from "@renderer/Yumu"
 
 function App(): React.JSX.Element {
-  const customUiEnabled = localStorage.getItem(LOCAL_YUMU_UI_SETTING) === "true"
+  const customUiEnabled = useUiStore((s) => s.customUiEnabled)
 
   return (
     <main className="bg-primary relative z-0 h-screen w-screen overflow-hidden pt-10">

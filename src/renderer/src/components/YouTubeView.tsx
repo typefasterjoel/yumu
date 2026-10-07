@@ -5,6 +5,7 @@ import {
   MEDIA_PREVIOUS_TRACK,
   MEDIA_STOP
 } from "@ipc/types"
+import { setCommandTarget } from "@ipc/youtube/commands"
 import { receiveYouTubeEvents } from "@ipc/youtube/receiver"
 import { cn } from "cn"
 import { Disc3Icon } from "lucide-react"
@@ -73,6 +74,7 @@ function YouTubeView() {
 
     webview.addEventListener("did-finish-load", handleLoad)
     webview.addEventListener("ipc-message", handleIPCMessageFromWebview)
+    setCommandTarget(webview)
 
     const cleanupAudioListener = window.electron.ipcRenderer.on(
       SET_AUDIO_DEVICE,
@@ -99,6 +101,7 @@ function YouTubeView() {
     return () => {
       webview.removeEventListener("did-finish-load", handleLoad)
       webview.removeEventListener("ipc-message", handleIPCMessageFromWebview)
+      setCommandTarget(null)
       cleanupAudioListener()
       cleanupMediaPlayPauseListener()
       cleanupMediaNextListener()
