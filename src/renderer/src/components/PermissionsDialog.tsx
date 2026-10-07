@@ -1,12 +1,12 @@
-import { Button } from '@renderer/components/ui/button'
+import { Button } from "@renderer/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle
-} from '@renderer/components/ui/dialog'
-import { useEffect, useState } from 'react'
+} from "@renderer/components/ui/dialog"
+import { useEffect, useState } from "react"
 
 function PermissionsDialog() {
   const [displayDialog, setDisplayDialog] = useState(false)
@@ -18,23 +18,23 @@ function PermissionsDialog() {
     }
 
     window.electron.ipcRenderer.on(
-      'invoke-mac-accessibility-warning-dialog',
+      "invoke-mac-accessibility-warning-dialog",
       handlePermissionDialog
     )
 
     return () => {
-      window.electron.ipcRenderer.removeAllListeners('invoke-mac-accessibility-warning-dialog')
+      window.electron.ipcRenderer.removeAllListeners("invoke-mac-accessibility-warning-dialog")
     }
   }, [])
 
   const handleGrantPermission = async () => {
     setDisabledRestart(false)
-    await window.electron.ipcRenderer.invoke('request-mac-accessibility-warning-dialog')
+    await window.electron.ipcRenderer.invoke("request-mac-accessibility-warning-dialog")
   }
 
   const handleRestartApp = async () => {
     setDisplayDialog(false)
-    await window.electron.ipcRenderer.invoke('restart-app')
+    await window.electron.ipcRenderer.invoke("restart-app")
   }
 
   return (

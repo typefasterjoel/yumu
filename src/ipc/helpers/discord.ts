@@ -1,8 +1,8 @@
-import { DISCORD_GET_STATUS, DISCORD_UPDATE_SONG, TOGGLE_DISCORD, type SongInfo } from '@ipc/types'
-import { Client, type SetActivity } from '@xhayper/discord-rpc'
-import { ipcMain } from 'electron'
+import { DISCORD_GET_STATUS, DISCORD_UPDATE_SONG, TOGGLE_DISCORD, type SongInfo } from "@ipc/types"
+import { Client, type SetActivity } from "@xhayper/discord-rpc"
+import { ipcMain } from "electron"
 
-const clientId = '1286520235893198899'
+const clientId = "1286520235893198899"
 let discordClient: Client | null = null
 let initialized = false
 
@@ -17,14 +17,14 @@ export async function initializeDiscordPresence() {
   try {
     isRetrying = true
     discordClient = new Client({ clientId: clientId })
-    discordClient.on('ready', () => {
+    discordClient.on("ready", () => {
       initialized = true
       isRetrying = false
       currentTry = 0 // Reset try counter on success
     })
-    console.log('Initializing Discord')
+    console.log("Initializing Discord")
     await discordClient.login().catch((error) => {
-      console.error('Failed to login to Discord RPC:', error)
+      console.error("Failed to login to Discord RPC:", error)
       if (!initialized && currentTry < maxTries) {
         currentTry++
         setTimeout(() => {
@@ -34,13 +34,13 @@ export async function initializeDiscordPresence() {
       } else {
         isRetrying = false
         if (currentTry >= maxTries) {
-          console.error('Max retries reached for Discord RPC initialization.')
+          console.error("Max retries reached for Discord RPC initialization.")
         }
       }
     })
   } catch (error) {
     isRetrying = false
-    console.error('Failed to initialize Discord presence:', error)
+    console.error("Failed to initialize Discord presence:", error)
   }
 }
 
@@ -50,19 +50,19 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
   try {
     const activity: SetActivity = {
       type: 2,
-      name: song.artist ? `${song.title} by ${song.artist}` : 'music on Yumu',
+      name: song.artist ? `${song.title} by ${song.artist}` : "music on Yumu",
       details: song.title,
       state: `by ${song.artist}`,
       startTimestamp: Date.now() - song.currentTime * 1000,
       endTimestamp: Date.now() + (song.duration - song.currentTime) * 1000,
       largeImageKey: song.albumArt,
       largeImageText: song.album,
-      smallImageKey: 'yumu-icon',
-      smallImageText: 'Yumu',
+      smallImageKey: "yumu-icon",
+      smallImageText: "Yumu",
       instance: false
     }
 
-    if (state === 'paused') {
+    if (state === "paused") {
       activity.startTimestamp = undefined
       activity.endTimestamp = undefined
     }
@@ -70,10 +70,10 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
     try {
       await discordClient?.user?.setActivity(activity)
     } catch (error) {
-      console.error('Failed to update Discord activity:', error)
+      console.error("Failed to update Discord activity:", error)
     }
   } catch (error) {
-    console.error('Failed to update Discord activity:', error)
+    console.error("Failed to update Discord activity:", error)
   }
 }
 

@@ -1,9 +1,9 @@
-import { discordListeners } from '@ipc/helpers/discord'
-import { CLOSE_WINDOW, MAX_WINDOW, MIN_WINDOW, YOUTUBE_PRELOAD_SCRIPT } from '@ipc/types'
-import { audioEventListeners } from '@ipc/window/audio'
-import { app, ipcMain, systemPreferences, type BrowserWindow } from 'electron'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { discordListeners } from "@ipc/helpers/discord"
+import { CLOSE_WINDOW, MAX_WINDOW, MIN_WINDOW, YOUTUBE_PRELOAD_SCRIPT } from "@ipc/types"
+import { audioEventListeners } from "@ipc/window/audio"
+import { app, ipcMain, systemPreferences, type BrowserWindow } from "electron"
+import path from "node:path"
+import { pathToFileURL } from "node:url"
 
 export function windowEventListeners(mainWindow: BrowserWindow) {
   ipcMain.handle(MIN_WINDOW, () => {
@@ -24,12 +24,12 @@ export function windowEventListeners(mainWindow: BrowserWindow) {
 
   ipcMain.handle(YOUTUBE_PRELOAD_SCRIPT, () => {
     let preloadPath
-    const preloadName = 'youtube.js'
+    const preloadName = "youtube.js"
 
-    if (process.env.NODE_ENV === 'development') {
-      preloadPath = path.join(app.getAppPath(), 'out', 'preload', preloadName)
+    if (process.env.NODE_ENV === "development") {
+      preloadPath = path.join(app.getAppPath(), "out", "preload", preloadName)
     } else {
-      preloadPath = path.join(__dirname, '..', 'preload', preloadName)
+      preloadPath = path.join(__dirname, "..", "preload", preloadName)
     }
 
     return pathToFileURL(preloadPath).toString()
@@ -42,8 +42,8 @@ export function windowEventListeners(mainWindow: BrowserWindow) {
   audioEventListeners()
 
   // macOS accessibility
-  ipcMain.handle('request-mac-accessibility-warning-dialog', () => {
-    if (process.platform === 'darwin') {
+  ipcMain.handle("request-mac-accessibility-warning-dialog", () => {
+    if (process.platform === "darwin") {
       systemPreferences.isTrustedAccessibilityClient(true)
     }
   })

@@ -1,5 +1,5 @@
-import { BrowserWindow, globalShortcut, systemPreferences } from 'electron'
-import { MEDIA_PLAY_PAUSE, MEDIA_NEXT_TRACK, MEDIA_PREVIOUS_TRACK } from '@ipc/types'
+import { BrowserWindow, globalShortcut, systemPreferences } from "electron"
+import { MEDIA_PLAY_PAUSE, MEDIA_NEXT_TRACK, MEDIA_PREVIOUS_TRACK } from "@ipc/types"
 
 let mainWindow: BrowserWindow | null = null
 
@@ -9,14 +9,14 @@ export function setMediaKeysMainWindow(window: BrowserWindow) {
 
 export function registerMediaKeys() {
   if (!mainWindow) {
-    console.error('Main window not set for media keys')
+    console.error("Main window not set for media keys")
     return
   }
 
-  if (process.platform === 'darwin') {
+  if (process.platform === "darwin") {
     const trusted = systemPreferences.isTrustedAccessibilityClient(false)
     if (!trusted) {
-      mainWindow.webContents.send('invoke-mac-accessibility-warning-dialog')
+      mainWindow.webContents.send("invoke-mac-accessibility-warning-dialog")
       return
     }
   }
@@ -24,19 +24,19 @@ export function registerMediaKeys() {
   // Register global shortcuts for media keys
   const shortcuts = [
     {
-      accelerator: 'MediaPlayPause',
+      accelerator: "MediaPlayPause",
       event: MEDIA_PLAY_PAUSE,
-      description: 'Play/Pause'
+      description: "Play/Pause"
     },
     {
-      accelerator: 'MediaNextTrack',
+      accelerator: "MediaNextTrack",
       event: MEDIA_NEXT_TRACK,
-      description: 'Next Track'
+      description: "Next Track"
     },
     {
-      accelerator: 'MediaPreviousTrack',
+      accelerator: "MediaPreviousTrack",
       event: MEDIA_PREVIOUS_TRACK,
-      description: 'Previous Track'
+      description: "Previous Track"
     }
   ]
 
@@ -58,5 +58,5 @@ export function registerMediaKeys() {
 
 export function unregisterMediaKeys() {
   globalShortcut.unregisterAll()
-  console.log('All media keys unregistered')
+  console.log("All media keys unregistered")
 }

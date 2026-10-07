@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron'
+import { ipcRenderer } from "electron"
 import {
   AUDIO_DEVICES_READY,
   CLOSE_WINDOW,
@@ -14,7 +14,7 @@ import {
   YUMU_UI_TOGGLE,
   type AudioDevice,
   type SongInfo
-} from './types'
+} from "./types"
 
 export interface YumuIpcApi {
   minimize: () => Promise<void>
