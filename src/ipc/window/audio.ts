@@ -4,8 +4,8 @@ import {
   PRELOAD_AUDIO_DEVICES,
   SET_AUDIO_DEVICE,
   type AudioDevice
-} from '@ipc/types'
-import { type BrowserWindow, ipcMain } from 'electron'
+} from "@ipc/types"
+import { type BrowserWindow, ipcMain } from "electron"
 
 let preloadedAudioDevices: AudioDevice[] = []
 let mainWindow: BrowserWindow | null = null

@@ -1,34 +1,34 @@
-import { type AudioDevice, type SongInfo } from '@ipc/types'
+import { type AudioDevice, type SongInfo } from "@ipc/types"
 
 export async function receiveYouTubeEvents(event: Electron.IpcMessageEvent) {
   const { channel, args } = event
 
   switch (channel) {
-    case 'youtube:audio': {
+    case "youtube:audio": {
       const audioDevices = args[0] as AudioDevice[]
       // console.log('Received audio devices:', audioDevices)
       window.yumu.preloadAudioDevices(audioDevices)
       break
     }
 
-    case 'youtube:preload-ready': {
+    case "youtube:preload-ready": {
       // const preloadData = args[0] as { message: string }
       // console.log('YouTube preload script loaded:', preloadData.message)
       break
     }
 
-    case 'youtube:song-update': {
-      const { songInfo, state } = args[0] as { songInfo: SongInfo; state: 'playing' | 'paused' }
+    case "youtube:song-update": {
+      const { songInfo, state } = args[0] as { songInfo: SongInfo; state: "playing" | "paused" }
       console.log(
-        'Song update received:',
+        "Song update received:",
         songInfo.title,
-        'by',
+        "by",
         songInfo.artist,
-        '- State:',
+        "- State:",
         state,
-        'Current Time:',
+        "Current Time:",
         songInfo.currentTime,
-        'Duration:',
+        "Duration:",
         songInfo.duration
       )
 

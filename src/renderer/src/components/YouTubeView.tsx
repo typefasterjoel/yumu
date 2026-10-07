@@ -4,13 +4,13 @@ import {
   MEDIA_NEXT_TRACK,
   MEDIA_PREVIOUS_TRACK,
   MEDIA_STOP
-} from '@ipc/types'
-import { receiveYouTubeEvents } from '@ipc/youtube/receiver'
-import { cn } from '@renderer/lib/utils'
-import { Disc3Icon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+} from "@ipc/types"
+import { receiveYouTubeEvents } from "@ipc/youtube/receiver"
+import { cn } from "cn"
+import { Disc3Icon } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
-const YOUTUBE_MUSIC_URL = 'https://music.youtube.com/'
+const YOUTUBE_MUSIC_URL = "https://music.youtube.com/"
 const isDev = import.meta.env.DEV
 
 function YouTubeView() {
@@ -28,7 +28,7 @@ function YouTubeView() {
           setYouTubePreloadScript(path)
         }
       } catch (error) {
-        console.error('Failed to fetch YouTube preload script path:', error)
+        console.error("Failed to fetch YouTube preload script path:", error)
       }
     }
     fetchPath()
@@ -71,8 +71,8 @@ function YouTubeView() {
       webview.send(MEDIA_STOP)
     }
 
-    webview.addEventListener('did-finish-load', handleLoad)
-    webview.addEventListener('ipc-message', handleIPCMessageFromWebview)
+    webview.addEventListener("did-finish-load", handleLoad)
+    webview.addEventListener("ipc-message", handleIPCMessageFromWebview)
 
     const cleanupAudioListener = window.electron.ipcRenderer.on(
       SET_AUDIO_DEVICE,
@@ -97,8 +97,8 @@ function YouTubeView() {
     const cleanupMediaStopListener = window.electron.ipcRenderer.on(MEDIA_STOP, handleMediaStop)
 
     return () => {
-      webview.removeEventListener('did-finish-load', handleLoad)
-      webview.removeEventListener('ipc-message', handleIPCMessageFromWebview)
+      webview.removeEventListener("did-finish-load", handleLoad)
+      webview.removeEventListener("ipc-message", handleIPCMessageFromWebview)
       cleanupAudioListener()
       cleanupMediaPlayPauseListener()
       cleanupMediaNextListener()
@@ -111,7 +111,7 @@ function YouTubeView() {
     <>
       {loading && (
         <Disc3Icon
-          className={cn('animation-duration-[3s] size-20 animate-spin')}
+          className={cn("animation-duration-[3s] size-20 animate-spin")}
           strokeWidth={1.5}
         />
       )}
@@ -119,8 +119,8 @@ function YouTubeView() {
         <webview
           ref={youtube}
           className={cn(
-            'absolute inset-0 h-full w-full opacity-0 transition-opacity duration-500',
-            loading ? 'opacity-0' : 'opacity-100'
+            "absolute inset-0 h-full w-full opacity-0 transition-opacity duration-500",
+            loading ? "opacity-0" : "opacity-100"
           )}
           src={YOUTUBE_MUSIC_URL}
           partition="persist:youtube"

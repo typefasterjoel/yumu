@@ -1,9 +1,9 @@
-import { closeWindow, maximizeWindow, minimizeWindow } from '@ipc/helpers/window'
-import Settings from '@renderer/components/Settings'
-import { Button } from '@renderer/components/ui/button'
-import { MinusIcon, SquareIcon, XIcon } from 'lucide-react'
+import { closeWindow, maximizeWindow, minimizeWindow } from "@ipc/helpers/window"
+import Settings from "@renderer/components/Settings"
+import { Button } from "@renderer/components/ui/button"
+import { MinusIcon, SquareIcon, XIcon } from "lucide-react"
 
-const isMac = window.electron.process.platform === 'darwin'
+const isMac = window.electron.process.platform === "darwin"
 
 function MacWindowControls() {
   return (

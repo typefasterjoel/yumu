@@ -3,38 +3,38 @@ import {
   LOCAL_DISCORD_SETTING,
   // LOCAL_YUMU_UI_SETTING,
   type AudioDevice
-} from '@ipc/types'
-import { DiscordLogoIcon } from '@radix-ui/react-icons'
-import { Button } from '@renderer/components/ui/button'
-import { Label } from '@renderer/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover'
+} from "@ipc/types"
+import { Button } from "@renderer/components/ui/button"
+import { Label } from "@renderer/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@renderer/components/ui/popover"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@renderer/components/ui/select'
-import { Switch } from '@renderer/components/ui/switch'
-import { HeadphonesIcon, PaletteIcon, Settings2Icon } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+} from "@renderer/components/ui/select"
+import { Switch } from "@renderer/components/ui/switch"
+import { HeadphonesIcon, Settings2Icon, SwatchBookIcon } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { LiaDiscord } from "react-icons/lia"
 
 function Settings() {
   const [showOverlay, setShowOverlay] = useState(false)
   const [isDiscordEnabled, setIsDiscordEnabled] = useState(() => {
-    return localStorage.getItem(LOCAL_DISCORD_SETTING) === 'true'
+    return localStorage.getItem(LOCAL_DISCORD_SETTING) === "true"
   })
   // const [isYumuUIEnabled, setIsYumuUIEnabled] = useState(() => {
   //   return localStorage.getItem(LOCAL_YUMU_UI_SETTING) === 'true'
   // })
 
   const [audioDevices, setAudioDevices] = useState<AudioDevice[]>([])
-  const [selectedAudioDevice, setSelectedAudioDevice] = useState<AudioDevice['deviceId']>('')
+  const [selectedAudioDevice, setSelectedAudioDevice] = useState<AudioDevice["deviceId"]>("")
 
   const updateAudioDevicesState = useCallback((devices: AudioDevice[]) => {
     if (devices.length) {
       setAudioDevices(devices)
-      const localStorageDevice = localStorage.getItem(LOCAL_AUDIO_DEVICE_KEY) || ''
+      const localStorageDevice = localStorage.getItem(LOCAL_AUDIO_DEVICE_KEY) || ""
       const deviceExists = devices.some((device) => device.deviceId === localStorageDevice)
       if (deviceExists) {
         setSelectedAudioDevice(localStorageDevice)
@@ -52,7 +52,7 @@ function Settings() {
           updateAudioDevicesState(devices)
         }
       } catch (error) {
-        console.error('Failed to fetch audio devices:', error)
+        console.error("Failed to fetch audio devices:", error)
         updateAudioDevicesState([])
       }
     }
@@ -66,7 +66,7 @@ function Settings() {
 
     const enableDiscord = async () => {
       const discordStatus = await window.yumu.getDiscordStatus()
-      const discordEnabled = localStorage.getItem(LOCAL_DISCORD_SETTING) === 'true'
+      const discordEnabled = localStorage.getItem(LOCAL_DISCORD_SETTING) === "true"
       if (discordEnabled && !discordStatus) {
         await window.yumu.toggleDiscordPresence(discordEnabled)
       }
@@ -93,7 +93,8 @@ function Settings() {
   //   localStorage.setItem(LOCAL_YUMU_UI_SETTING, String(checked))
   // }
 
-  const handleAudioDeviceChange = async (deviceId: AudioDevice['deviceId']) => {
+  const handleAudioDeviceChange = async (deviceId: AudioDevice["deviceId"] | null) => {
+    if (deviceId === null) return
     setSelectedAudioDevice(deviceId)
     localStorage.setItem(LOCAL_AUDIO_DEVICE_KEY, deviceId)
     if (window.yumu) {
@@ -106,11 +107,13 @@ function Settings() {
       {showOverlay && <div className="fixed inset-0 z-50 bg-black/30" aria-hidden="true" />}
 
       <Popover onOpenChange={() => setShowOverlay(!showOverlay)}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon-sm">
-            <Settings2Icon className="size-4" />
-          </Button>
-        </PopoverTrigger>
+        <PopoverTrigger
+          render={
+            <Button variant="ghost" size="icon-sm">
+              <Settings2Icon className="size-4" />
+            </Button>
+          }
+        />
         <PopoverContent className="-mt-2 w-80" align="end" side="bottom">
           <div className="flex flex-col gap-5 divide-y">
             <div className="flex flex-col pb-4">
@@ -127,11 +130,17 @@ function Settings() {
                   Select the audio output device for Yumu
                 </h5>
               </div>
-              <Select value={selectedAudioDevice} onValueChange={handleAudioDeviceChange}>
+              <Select
+                itemToStringLabel={(item) =>
+                  audioDevices.find((d) => d.deviceId === item)?.label ?? item
+                }
+                value={selectedAudioDevice}
+                onValueChange={handleAudioDeviceChange}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select Audio Output" />
                 </SelectTrigger>
-                <SelectContent align="end" side="bottom">
+                <SelectContent side="top" align="start" className="min-w-fit">
                   {audioDevices.map((device) => (
                     <SelectItem key={device.deviceId} value={device.deviceId}>
                       {device.label}
@@ -143,7 +152,7 @@ function Settings() {
             <div className="flex flex-col gap-2 pb-4">
               <div className="flex flex-col">
                 <h4 className="flex items-center gap-2 font-medium">
-                  <DiscordLogoIcon className="size-4" />
+                  <LiaDiscord className="size-4" />
                   Discord
                 </h4>
                 <h5 className="text-muted-foreground text-sm">
@@ -162,7 +171,7 @@ function Settings() {
             <div className="flex flex-col gap-2">
               <div className="flex flex-col">
                 <h4 className="flex items-center gap-2 font-medium">
-                  <PaletteIcon className="size-4" />
+                  <SwatchBookIcon className="size-4" />
                   Yumu UI
                 </h4>
                 <h5 className="text-muted-foreground text-sm">

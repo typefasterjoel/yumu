@@ -1,10 +1,10 @@
-import { ipcRenderer } from 'electron'
-import type { SongInfo } from '@ipc/types'
+import { ipcRenderer } from "electron"
+import type { SongInfo } from "@ipc/types"
 
-document.addEventListener('DOMContentLoaded', () => {
-  ipcRenderer.sendToHost('youtube:preload-ready', { message: 'YouTube preload script loaded' })
+document.addEventListener("DOMContentLoaded", () => {
+  ipcRenderer.sendToHost("youtube:preload-ready", { message: "YouTube preload script loaded" })
 
-  let currentSinkId = ''
+  let currentSinkId = ""
 
   // Get Audio Devices
   const getAudioDevices = async () => {
@@ -12,23 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
       await navigator.mediaDevices.getUserMedia({ audio: true })
       const devices = await navigator.mediaDevices.enumerateDevices()
       const audioDevices = devices
-        .filter((device) => device.kind === 'audiooutput')
+        .filter((device) => device.kind === "audiooutput")
         .map((device) => ({
           deviceId: device.deviceId,
-          label: device.label || 'Unknown Device'
+          label: device.label || "Unknown Device"
         }))
-      ipcRenderer.sendToHost('youtube:audio', audioDevices)
+      ipcRenderer.sendToHost("youtube:audio", audioDevices)
     } catch (error) {
-      console.error('Failed to get audio devices:', error)
+      console.error("Failed to get audio devices:", error)
     }
   }
   getAudioDevices()
 
   // Listen for audio device changes
-  ipcRenderer.on('audio:set-device', async (_, deviceId) => {
+  ipcRenderer.on("audio:set-device", async (_, deviceId) => {
     currentSinkId = deviceId
     console.log(`Setting audio output device to: ${deviceId}`)
-    const audioElement = document.querySelector('video')
+    const audioElement = document.querySelector("video")
     if (audioElement) {
       try {
         await audioElement.setSinkId(deviceId)
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(`Failed to set audio output device: ${error}`)
       }
     } else {
-      console.warn('No audio element found — MutationObserver will apply when element appears.')
+      console.warn("No audio element found — MutationObserver will apply when element appears.")
     }
   })
 
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (node instanceof HTMLVideoElement) {
           applyStoredSinkId(node)
         } else if (node instanceof Element) {
-          node.querySelectorAll('video').forEach((v) => applyStoredSinkId(v as HTMLVideoElement))
+          node.querySelectorAll("video").forEach((v) => applyStoredSinkId(v as HTMLVideoElement))
         }
       }
     }
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   videoObserver.observe(document.body, { childList: true, subtree: true })
 
-  navigator.mediaDevices.addEventListener('devicechange', () => {
+  navigator.mediaDevices.addEventListener("devicechange", () => {
     getAudioDevices()
   })
 
@@ -76,28 +76,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const extractSongInfo = (): SongInfo | null => {
     try {
       // Get video element for duration and current time
-      const videoElement = document.querySelector('#song-video video') as HTMLVideoElement
+      const videoElement = document.querySelector("#song-video video") as HTMLVideoElement
       if (!videoElement) return null
 
       const title =
-        document.querySelector('.ytmusic-player-bar .title')?.textContent || 'Unknown Title'
+        document.querySelector(".ytmusic-player-bar .title")?.textContent || "Unknown Title"
       const artistLine =
-        document.querySelector('.ytmusic-player-bar .byline')?.textContent?.split('•') || null
-      const artist = artistLine ? artistLine[0].trim() : 'Unknown Artist'
-      const album = artistLine ? artistLine[1].trim() : 'Unknown Album'
+        document.querySelector(".ytmusic-player-bar .byline")?.textContent?.split("•") || null
+      const artist = artistLine ? artistLine[0].trim() : "Unknown Artist"
+      const album = artistLine ? artistLine[1].trim() : "Unknown Album"
 
       // Get album art
-      const albumArtElement = document.querySelector('#song-image #img') as HTMLImageElement
-      const albumArt = albumArtElement?.src || ''
+      const albumArtElement = document.querySelector("#song-image #img") as HTMLImageElement
+      const albumArt = albumArtElement?.src || ""
 
-      const progressBar = document.querySelector('#progress-bar') as HTMLDivElement
+      const progressBar = document.querySelector("#progress-bar") as HTMLDivElement
 
       let durationTime = 0
       let currentTimeElapsed = 0
 
       if (progressBar) {
-        durationTime = parseInt(progressBar.getAttribute('aria-valuemax')!) || 0
-        currentTimeElapsed = parseInt(progressBar.getAttribute('aria-valuenow')!) || 0
+        durationTime = parseInt(progressBar.getAttribute("aria-valuemax")!) || 0
+        currentTimeElapsed = parseInt(progressBar.getAttribute("aria-valuenow")!) || 0
       }
 
       const song = {
@@ -111,13 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return song
     } catch (error) {
-      console.error('Failed to extract song info:', error)
+      console.error("Failed to extract song info:", error)
       return null
     }
   }
 
-  const sendSongUpdate = (songInfo: SongInfo, state: 'playing' | 'paused') => {
-    ipcRenderer.sendToHost('youtube:song-update', { songInfo, state })
+  const sendSongUpdate = (songInfo: SongInfo, state: "playing" | "paused") => {
+    ipcRenderer.sendToHost("youtube:song-update", { songInfo, state })
   }
 
   let songCheckInterval
@@ -135,9 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
       currentSong = newSong
 
       // Check if media is playing
-      const videoElement = document.querySelector('#song-video video') as HTMLVideoElement
+      const videoElement = document.querySelector("#song-video video") as HTMLVideoElement
       if (videoElement && !videoElement.paused) {
-        sendSongUpdate(currentSong, 'playing')
+        sendSongUpdate(currentSong, "playing")
       }
     } else {
       // If the song is the same just stop the interval
@@ -147,35 +147,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Listen for media events
   const attachMediaListeners = () => {
-    const videoElement = document.querySelector('#song-video video') as HTMLVideoElement
+    const videoElement = document.querySelector("#song-video video") as HTMLVideoElement
     if (!videoElement) {
       // Retry after a short delay if video element not found
       setTimeout(attachMediaListeners, 1000)
       return
     }
 
-    videoElement.addEventListener('play', () => {
+    videoElement.addEventListener("play", () => {
       const songInfo = extractSongInfo()
       if (songInfo) {
         currentSong = songInfo
-        sendSongUpdate(songInfo, 'playing')
+        sendSongUpdate(songInfo, "playing")
 
         songCheckInterval = setInterval(checkForSongChanges, 1000)
       }
     })
 
-    videoElement.addEventListener('pause', () => {
+    videoElement.addEventListener("pause", () => {
       if (currentSong) {
-        sendSongUpdate(currentSong, 'paused')
+        sendSongUpdate(currentSong, "paused")
       }
     })
 
-    videoElement.addEventListener('seeked', () => {
+    videoElement.addEventListener("seeked", () => {
       if (currentSong) {
-        const progressBar = document.querySelector('#progress-bar') as HTMLDivElement
-        currentSong.currentTime = parseInt(progressBar.getAttribute('aria-valuenow')!) || 0
-        console.log('Seeked to:', currentSong.currentTime)
-        sendSongUpdate(currentSong, 'playing')
+        const progressBar = document.querySelector("#progress-bar") as HTMLDivElement
+        currentSong.currentTime = parseInt(progressBar.getAttribute("aria-valuenow")!) || 0
+        console.log("Seeked to:", currentSong.currentTime)
+        sendSongUpdate(currentSong, "playing")
       }
     })
   }
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
   attachMediaListeners()
 
   const observeSongChanges = () => {
-    const playerBar = document.getElementById('progress-bar')
+    const playerBar = document.getElementById("progress-bar")
     if (!playerBar) {
       setTimeout(observeSongChanges, 1000)
       return
@@ -193,8 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (
-          mutation.type === 'attributes' &&
-          (mutation.attributeName === 'aria-valuenow' || mutation.attributeName === 'aria-valuemax')
+          mutation.type === "attributes" &&
+          (mutation.attributeName === "aria-valuenow" || mutation.attributeName === "aria-valuemax")
         ) {
           const songPlaying = extractSongInfo()
           if (songPlaying && currentSong && currentSong.title !== songPlaying.title) {
@@ -202,8 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
               const newSong = extractSongInfo()!
               currentSong = newSong
-              sendSongUpdate(currentSong, 'playing')
-              console.log('Song changed observed:', currentSong.title, 'by', currentSong.artist)
+              sendSongUpdate(currentSong, "playing")
+              console.log("Song changed observed:", currentSong.title, "by", currentSong.artist)
             }, 1000) // Delay to ensure the DOM is updated
           }
         }
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     observer.observe(playerBar, {
       attributes: true,
-      attributeFilter: ['aria-valuenow', 'aria-valuemax']
+      attributeFilter: ["aria-valuenow", "aria-valuemax"]
     })
   }
 
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Media control functions
   const playPause = () => {
-    const playButton = document.getElementById('play-pause-button') as HTMLButtonElement
+    const playButton = document.getElementById("play-pause-button") as HTMLButtonElement
     if (playButton) {
       playButton.click()
     }
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Listen for media key events from main process
-  ipcRenderer.on('media:play-pause', playPause)
-  ipcRenderer.on('media:next-track', nextTrack)
-  ipcRenderer.on('media:previous-track', previousTrack)
+  ipcRenderer.on("media:play-pause", playPause)
+  ipcRenderer.on("media:next-track", nextTrack)
+  ipcRenderer.on("media:previous-track", previousTrack)
 })
