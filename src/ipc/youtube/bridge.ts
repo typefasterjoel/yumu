@@ -15,8 +15,13 @@ export type YtmCommand =
   | { type: "toggle" }
   | { type: "next" }
   | { type: "previous" }
+  /** Starts a specific track, the same way clicking it in the YouTube Music UI would. */
+  | { type: "playVideo"; videoId: string; musicVideoType?: string }
   | { type: "seek"; seconds: number }
   | { type: "setVolume"; volume: number }
+
+/** Innertube endpoints the bridge is allowed to call. */
+export type InnertubeEndpoint = "search" | "browse" | "next"
 
 /** What the main-world script can read straight from the YouTube Music player. */
 export type PlayerApiState = {
