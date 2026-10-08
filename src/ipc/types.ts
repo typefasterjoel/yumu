@@ -7,6 +7,7 @@ export const LOCAL_DISCORD_SETTING = "discordEnabled"
 export const TOGGLE_DISCORD = "discord:toggle"
 export const DISCORD_UPDATE_SONG = "discord:update-song"
 export const DISCORD_GET_STATUS = "discord:get-status"
+export const DISCORD_CLEAR_ACTIVITY = "discord:clear-activity"
 
 // Audio Selection IPC types
 export const LOCAL_AUDIO_DEVICE_KEY = "audioDevice"

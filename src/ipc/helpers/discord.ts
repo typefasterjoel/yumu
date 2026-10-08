@@ -1,4 +1,10 @@
-import { DISCORD_GET_STATUS, DISCORD_UPDATE_SONG, TOGGLE_DISCORD, type SongInfo } from "@ipc/types"
+import {
+  DISCORD_CLEAR_ACTIVITY,
+  DISCORD_GET_STATUS,
+  DISCORD_UPDATE_SONG,
+  TOGGLE_DISCORD,
+  type SongInfo
+} from "@ipc/types"
 import { Client, type SetActivity } from "@xhayper/discord-rpc"
 import { ipcMain } from "electron"
 
@@ -77,6 +83,17 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
   }
 }
 
+/** Removes the current activity but keeps the Discord connection open for the next song. */
+export async function resetDiscordActivity() {
+  if (!initialized) return
+
+  try {
+    await discordClient?.user?.clearActivity()
+  } catch (error) {
+    console.error("Failed to reset Discord activity:", error)
+  }
+}
+
 export async function clearDiscordActivity() {
   if (!initialized) return
 
@@ -97,6 +114,10 @@ export function discordListeners() {
 
   ipcMain.handle(DISCORD_UPDATE_SONG, async (_, song: SongInfo, state: string) => {
     await updateDiscordActivity(song, state)
+  })
+
+  ipcMain.handle(DISCORD_CLEAR_ACTIVITY, async () => {
+    await resetDiscordActivity()
   })
 
   ipcMain.handle(DISCORD_GET_STATUS, () => {
