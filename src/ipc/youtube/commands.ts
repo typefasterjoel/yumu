@@ -1,3 +1,4 @@
+import { usePlayerStore } from "@ipc/stores/player-store"
 import { YTM_COMMAND, type InnertubeEndpoint, type YtmCommand } from "@ipc/youtube/bridge"
 
 // The webview lives inside `YouTubeView`; this lets the rest of the renderer reach it.
@@ -23,6 +24,11 @@ export async function requestInnertube<T = unknown>(
 export function sendYtmCommand(command: YtmCommand) {
   try {
     target?.send(YTM_COMMAND, command)
+
+    // Show a seek right away; the webview confirms it with a snapshot once the seek lands.
+    if (target && command.type === "seek") {
+      usePlayerStore.getState().applyOptimisticSeek(command.seconds)
+    }
   } catch (error) {
     // `send` throws until the webview has finished loading.
     console.warn("YouTube Music command dropped:", command.type, error)
