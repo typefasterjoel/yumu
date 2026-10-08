@@ -3,7 +3,7 @@ import { sendYtmCommand } from "@ipc/youtube/commands"
 import SearchPanel from "@renderer/components/SearchPanel"
 import { Button } from "@renderer/components/ui/button"
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const formatTime = (seconds: number) => {
   const whole = Math.floor(seconds)
@@ -18,8 +18,34 @@ function Yumu() {
   const duration = usePlayerStore((s) => s.duration)
   const volume = usePlayerStore((s) => s.volume)
 
-  // While dragging, show the thumb where the user put it instead of the live position.
+  // While scrubbing, show the thumb where the user put it instead of the live position.
   const [scrub, setScrub] = useState<number | null>(null)
+  const scrubRef = useRef<number | null>(null)
+  const isScrubbing = scrub !== null
+
+  const updateScrub = (seconds: number) => {
+    scrubRef.current = seconds
+    setScrub(seconds)
+  }
+
+  // The scrub ends from the window rather than the slider's own onPointerUp. Releasing outside
+  // the slider, a cancelled pointer, or a keyboard change never reach the slider, which left
+  // `scrub` set and the bar and timer frozen while the song kept playing.
+  useEffect(() => {
+    if (!isScrubbing) return
+
+    const commit = () => {
+      if (scrubRef.current !== null) {
+        sendYtmCommand({ type: "seek", seconds: scrubRef.current })
+      }
+      scrubRef.current = null
+      setScrub(null)
+    }
+
+    const endEvents = ["pointerup", "pointercancel", "keyup"] as const
+    endEvents.forEach((name) => window.addEventListener(name, commit))
+    return () => endEvents.forEach((name) => window.removeEventListener(name, commit))
+  }, [isScrubbing])
 
   return (
     <div className="bg-secondary fixed inset-0 z-10 flex flex-col gap-4 p-4 pt-14">
@@ -60,11 +86,7 @@ function Yumu() {
           max={duration || 1}
           step={1}
           value={scrub ?? position}
-          onChange={(e) => setScrub(Number(e.target.value))}
-          onPointerUp={() => {
-            if (scrub !== null) sendYtmCommand({ type: "seek", seconds: scrub })
-            setScrub(null)
-          }}
+          onChange={(e) => updateScrub(Number(e.target.value))}
         />
         <span>{formatTime(duration)}</span>
       </div>
