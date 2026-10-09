@@ -2,6 +2,7 @@ import { resolve } from "path"
 import { defineConfig } from "electron-vite"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
+import { tanstackRouter } from "@tanstack/router-plugin/vite"
 
 export default defineConfig({
   main: {
@@ -38,6 +39,15 @@ export default defineConfig({
         "@ipc": resolve("src/ipc")
       }
     },
-    plugins: [react(), tailwindcss()]
+    plugins: [
+      tanstackRouter({
+        target: "react",
+        autoCodeSplitting: true,
+        routesDirectory: resolve("src/renderer/src/ui/routes"),
+        generatedRouteTree: resolve("src/renderer/src/ui/routeTree.gen.ts")
+      }),
+      react(),
+      tailwindcss()
+    ]
   }
 })
