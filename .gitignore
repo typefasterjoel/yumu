@@ -5,4 +5,4 @@ out
 .eslintcache
 *.log*
 
-copilot-instructions.md
+settings.local.*
