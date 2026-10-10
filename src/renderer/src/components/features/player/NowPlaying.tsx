@@ -13,12 +13,16 @@ function NowPlaying() {
           {track.albumArt && (
             <div
               className={cn(
-                "bg-accent animation-duration-[5s] border-primary/60 fill-mode-forwards absolute inset-s-0 top-1/2 size-32 -translate-y-1/2 overflow-hidden rounded-full border-4 shadow-md transition",
+                "bg-accent animation-duration-[5s] border-primary/60 fill-mode-forwards absolute inset-s-0 top-1/2 z-90 size-32 -translate-y-1/2 overflow-hidden rounded-full border-4 shadow-md transition peer-[player]:hover:top-full",
                 status === "playing" && "animate-spin",
                 status === "paused" && "paused animate-spin"
               )}
             >
-              <img src={track.albumArt} alt="" className="h-full w-full rounded-md object-cover" />
+              <img
+                src={track.albumArt}
+                alt={track.album}
+                className="h-full w-full rounded-md object-cover"
+              />
             </div>
           )}
           <div>
