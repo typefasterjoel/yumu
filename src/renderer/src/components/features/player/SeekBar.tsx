@@ -1,5 +1,6 @@
 import { usePlayerStore } from "@ipc/stores/player-store"
 import { sendYtmCommand } from "@ipc/youtube/commands"
+import { Slider } from "@renderer/components/ui/slider"
 import { useEffect, useRef, useState } from "react"
 
 const formatTime = (seconds: number) => {
@@ -41,17 +42,26 @@ function SeekBar() {
   }, [isScrubbing])
 
   return (
-    <div className="flex flex-1 items-center gap-2 text-sm tabular-nums">
+    <div className="peer-[player] flex flex-1 items-center gap-2 text-sm tabular-nums">
       <span>{formatTime(scrub ?? position)}</span>
-      <input
+      <Slider
+        min={0}
+        max={duration || 0}
+        step={1}
+        defaultValue={0}
+        value={scrub ? [scrub] : [position]}
+        onValueChange={(value) => updateScrub(value as number)}
+        className="absolute inset-x-0 top-0"
+      />
+      {/*<input
         type="range"
-        className="flex-1"
+        className="absolute inset-x-0 top-0 h-1 flex-1"
         min={0}
         max={duration || 1}
         step={1}
         value={scrub ?? position}
         onChange={(e) => updateScrub(Number(e.target.value))}
-      />
+      />*/}
       <span>{formatTime(duration)}</span>
     </div>
   )

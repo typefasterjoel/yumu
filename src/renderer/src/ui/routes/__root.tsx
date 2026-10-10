@@ -7,7 +7,7 @@ function RootLayout() {
   useHistoryShortcuts()
 
   return (
-    <div className="bg-secondary fixed inset-0 z-10 flex flex-col gap-4 p-4 pt-14">
+    <div className="bg-background fixed inset-0 z-10 flex flex-col gap-4 p-4 pt-14">
       <Player />
       <Outlet />
     </div>
