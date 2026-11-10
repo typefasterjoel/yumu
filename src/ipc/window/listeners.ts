@@ -1,3 +1,4 @@
+import { albumArtListeners } from "@ipc/helpers/album-art"
 import { discordListeners } from "@ipc/helpers/discord"
 import { CLOSE_WINDOW, MAX_WINDOW, MIN_WINDOW, YOUTUBE_PRELOAD_SCRIPT } from "@ipc/types"
 import { audioEventListeners } from "@ipc/window/audio"
@@ -40,6 +41,9 @@ export function windowEventListeners(mainWindow: BrowserWindow) {
 
   // Audio
   audioEventListeners()
+
+  // Album art
+  albumArtListeners()
 
   // macOS accessibility
   ipcMain.handle("request-mac-accessibility-warning-dialog", () => {
