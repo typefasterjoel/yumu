@@ -5,6 +5,7 @@ import {
   DISCORD_CLEAR_ACTIVITY,
   DISCORD_GET_STATUS,
   DISCORD_UPDATE_SONG,
+  GET_ALBUM_ART,
   GET_AUDIO_DEVICES,
   MAX_WINDOW,
   MIN_WINDOW,
@@ -33,6 +34,9 @@ export interface YumuIpcApi {
   // Youtube
   getYoutubePreloadScriptPath: () => Promise<string>
 
+  /** Album art as a data URL, fetched by the main process. `null` if it couldn't be loaded. */
+  getAlbumArt: (url: string) => Promise<string | null>
+
   // Audio
   preloadAudioDevices: (devices: AudioDevice[]) => Promise<AudioDevice[]>
   getAudioDevices: () => Promise<AudioDevice[]>
@@ -51,6 +55,7 @@ export default {
   clearDiscordActivity: () => ipcRenderer.invoke(DISCORD_CLEAR_ACTIVITY),
   toggleYumuUi: (enabled: boolean) => ipcRenderer.invoke(YUMU_UI_TOGGLE, enabled),
   getYoutubePreloadScriptPath: () => ipcRenderer.invoke(YOUTUBE_PRELOAD_SCRIPT),
+  getAlbumArt: (url: string) => ipcRenderer.invoke(GET_ALBUM_ART, url),
   preloadAudioDevices: (devices: AudioDevice[]) =>
     ipcRenderer.invoke(PRELOAD_AUDIO_DEVICES, devices),
   getAudioDevices: () => ipcRenderer.invoke(GET_AUDIO_DEVICES),

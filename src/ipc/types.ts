@@ -23,6 +23,9 @@ export const YUMU_UI_TOGGLE = "yumu:ui-toggle"
 // Youtube Types
 export const YOUTUBE_PRELOAD_SCRIPT = "yumu:youtube-preload-script"
 
+// Album art
+export const GET_ALBUM_ART = "art:get"
+
 // Media Key Types
 export const MEDIA_PLAY_PAUSE = "media:play-pause"
 export const MEDIA_NEXT_TRACK = "media:next-track"
