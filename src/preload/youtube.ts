@@ -111,14 +111,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // Yumu bridge: player state out to the custom UI, commands in.
   webFrame.executeJavaScript(`(${installYtmMainWorld.toString()})()`)
 
-  // Album and art only exist in the DOM, not in the player API.
+  // Album and art only exist in the DOM, not in the player API. The song's length is read from
+  // the progress bar too: YouTube Music sets `aria-valuemax` to it in seconds as soon as the song
+  // loads, which is more reliable than `getDuration()`.
   const readDomTrackExtras = () => {
     const parts = document
       .querySelector(".ytmusic-player-bar .byline")
       ?.textContent?.split("•")
       .map((part) => part.trim())
     const art = document.querySelector("#song-image #img") as HTMLImageElement | null
-    return { album: parts?.[1] ?? "", albumArt: art?.src ?? "" }
+    const progressBar = document.querySelector("#progress-bar")
+    const duration = parseInt(progressBar?.getAttribute("aria-valuemax") ?? "", 10)
+    return {
+      album: parts?.[1] ?? "",
+      albumArt: art?.src ?? "",
+      ...(duration > 0 && { duration })
+    }
   }
 
   let lastVideoId: string | null = null
