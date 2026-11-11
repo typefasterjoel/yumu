@@ -132,6 +132,26 @@ export function installYtmMainWorld(): void {
     }
   }
 
+  const sha1Hex = async (text: string): Promise<string> => {
+    const digest = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(text))
+    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("")
+  }
+
+  // YouTube only treats a request as coming from the signed-in user when it carries this header,
+  // even though the cookies are sent anyway. Without it a playlist comes back as its logged-out
+  // version: mostly music videos instead of the audio tracks the YouTube Music page itself shows.
+  // It is the same value the page computes for its own requests. Null when signed out.
+  const authorizationHeader = async (origin: string): Promise<string | null> => {
+    const sapisid = document.cookie
+      .split("; ")
+      .find((cookie) => cookie.startsWith("SAPISID="))
+      ?.slice("SAPISID=".length)
+    if (!sapisid) return null
+
+    const timestamp = Math.floor(Date.now() / 1000)
+    return `SAPISIDHASH ${timestamp}_${await sha1Hex(`${timestamp} ${sapisid} ${origin}`)}`
+  }
+
   // Calls YouTube Music's own Innertube API from inside the page, so the user's cookies are sent
   // and the client context comes from the page's `ytcfg` instead of being hardcoded.
   const request = async (
@@ -147,10 +167,22 @@ export function installYtmMainWorld(): void {
     const apiKey = ytcfg?.get("INNERTUBE_API_KEY")
     if (!context || !apiKey) throw new Error("YouTube Music config (ytcfg) is not ready yet")
 
+    const authorization = await authorizationHeader(location.origin)
     const response = await fetch(`/youtubei/v1/${endpoint}?prettyPrint=false&key=${apiKey}`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // The same headers the page sends itself.
+        "X-Origin": location.origin,
+        "X-Youtube-Client-Name": String(ytcfg?.get("INNERTUBE_CONTEXT_CLIENT_NAME")),
+        "X-Youtube-Client-Version": String(ytcfg?.get("INNERTUBE_CONTEXT_CLIENT_VERSION")),
+        ...(authorization && {
+          Authorization: authorization,
+          "X-Goog-AuthUser": "0",
+          "X-Youtube-Bootstrap-Logged-In": "true"
+        })
+      },
       body: JSON.stringify({ context, ...body })
     })
     if (!response.ok) throw new Error(`Innertube ${endpoint} failed with status ${response.status}`)
