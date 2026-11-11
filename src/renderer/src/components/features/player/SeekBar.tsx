@@ -42,8 +42,7 @@ function SeekBar() {
   }, [isScrubbing])
 
   return (
-    <div className="peer-[player] flex flex-1 items-center gap-2 text-sm tabular-nums">
-      <span>{formatTime(scrub ?? position)}</span>
+    <div className="peer-[player] flex items-center gap-2 text-sm tabular-nums">
       <Slider
         min={0}
         max={duration || 0}
@@ -62,7 +61,11 @@ function SeekBar() {
         value={scrub ?? position}
         onChange={(e) => updateScrub(Number(e.target.value))}
       />*/}
-      <span>{formatTime(duration)}</span>
+      <div className="inline-flex gap-1">
+        <span className="">{formatTime(scrub ?? position)}</span>
+        <span className="text-muted-foreground"> /</span>
+        <span className="text-muted-foreground">{formatTime(duration)}</span>
+      </div>
     </div>
   )
 }
