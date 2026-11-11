@@ -7,7 +7,7 @@ import VolumeControl from "./VolumeControl"
 function Player() {
   return (
     <section className="bg-card fixed inset-x-0 bottom-0 z-999 p-3 shadow-lg">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pt-2">
         <NowPlaying />
         <SeekBar />
         <PlaybackControls />

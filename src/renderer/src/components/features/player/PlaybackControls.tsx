@@ -7,14 +7,14 @@ function PlaybackControls() {
   const status = usePlayerStore((s) => s.status)
 
   return (
-    <div className="flex items-center gap-2">
-      <Button variant="ghost" size="icon" onClick={() => sendYtmCommand({ type: "previous" })}>
+    <div className="flex items-center gap-1.5">
+      <Button variant="ghost" size="icon-sm" onClick={() => sendYtmCommand({ type: "previous" })}>
         <SkipBackIcon />
       </Button>
-      <Button size="icon" onClick={() => sendYtmCommand({ type: "toggle" })}>
+      <Button size="icon-lg" onClick={() => sendYtmCommand({ type: "toggle" })}>
         {status === "playing" ? <PauseIcon /> : <PlayIcon />}
       </Button>
-      <Button variant="ghost" size="icon" onClick={() => sendYtmCommand({ type: "next" })}>
+      <Button variant="ghost" size="icon-sm" onClick={() => sendYtmCommand({ type: "next" })}>
         <SkipForwardIcon />
       </Button>
     </div>
