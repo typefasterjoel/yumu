@@ -111,18 +111,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // Yumu bridge: player state out to the custom UI, commands in.
   webFrame.executeJavaScript(`(${installYtmMainWorld.toString()})()`)
 
-  // Album and art only exist in the DOM, not in the player API. The song's length is read from
-  // the progress bar too: YouTube Music sets `aria-valuemax` to it in seconds as soon as the song
-  // loads, which is more reliable than `getDuration()`.
+  // Album, art and the artists' pages only exist in the DOM, not in the player API. The song's
+  // length is read from the progress bar too: YouTube Music sets `aria-valuemax` to it in seconds
+  // as soon as the song loads, which is more reliable than `getDuration()`.
   const readDomTrackExtras = () => {
-    const parts = document
-      .querySelector(".ytmusic-player-bar .byline")
-      ?.textContent?.split("•")
-      .map((part) => part.trim())
+    const byline = document.querySelector(".ytmusic-player-bar .byline")
+    const parts = byline?.textContent?.split("•").map((part) => part.trim())
+    // The player bar links each artist to their channel, e.g. href="channel/UC…". Anything it
+    // doesn't link (the album, a name with no page) is skipped here.
+    const artists = [...(byline?.querySelectorAll("a") ?? [])].flatMap((link) => {
+      const browseId = link.getAttribute("href")?.match(/(?:^|\/)channel\/(UC[\w-]+)/)?.[1]
+      const name = link.textContent?.trim()
+      return browseId && name ? [{ name, browseId }] : []
+    })
     const art = document.querySelector("#song-image #img") as HTMLImageElement | null
     const progressBar = document.querySelector("#progress-bar")
     const duration = parseInt(progressBar?.getAttribute("aria-valuemax") ?? "", 10)
     return {
+      artists,
       album: parts?.[1] ?? "",
       albumArt: art?.src ?? "",
       ...(duration > 0 && { duration })

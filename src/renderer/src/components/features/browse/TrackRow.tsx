@@ -1,10 +1,9 @@
 import { usePlayerStore } from "@ipc/stores/player-store"
 import { sendYtmCommand } from "@ipc/youtube/commands"
 import type { BrowseTrack } from "@ipc/youtube/parse-browse"
+import ArtistLinks from "@renderer/components/features/artist/ArtistLinks"
 import RemoteImage from "@renderer/components/ui/remote-image"
-import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
-import { Fragment } from "react"
 
 // The track that plays is often another version of the row's video (the audio rather than the
 // music video), so it can't be matched by video id. Titles also differ in suffixes like
@@ -65,22 +64,10 @@ function TrackRow({ track, position }: { track: BrowseTrack; position: number })
         </p>
         {(track.artists.length > 0 || track.album) && (
           <p className="text-muted-foreground truncate text-xs">
-            {track.artists.map((artist, i) => (
-              <Fragment key={`${i}:${artist.name}`}>
-                {i > 0 && ", "}
-                {artist.browseId ? (
-                  <Link
-                    to="/artist/$browseId"
-                    params={{ browseId: artist.browseId }}
-                    className="pointer-events-auto relative z-10 hover:underline"
-                  >
-                    {artist.name}
-                  </Link>
-                ) : (
-                  artist.name
-                )}
-              </Fragment>
-            ))}
+            <ArtistLinks
+              artists={track.artists}
+              className="pointer-events-auto relative z-10 hover:underline"
+            />
             {track.artists.length > 0 && track.album && " • "}
             {track.album}
           </p>
