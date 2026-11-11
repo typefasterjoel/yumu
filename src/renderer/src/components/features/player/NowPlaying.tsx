@@ -1,6 +1,7 @@
 import { usePlayerStore, type Track } from "@ipc/stores/player-store"
+import { useRemoteImage } from "@renderer/hooks/use-remote-image"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 /** Degrees per second at full speed; one turn every 4.5s. */
 const SPIN_SPEED = 360 / 4
@@ -48,34 +49,9 @@ function useEasedSpin(spinning: boolean) {
   return ref
 }
 
-/**
- * Album art goes through the main process because the renderer's own request for some images
- * gets a 429 from Google's image host. Falls back to the plain URL if that fails.
- */
-function useAlbumArtSrc(url: string): string | null {
-  const [loaded, setLoaded] = useState<{ url: string; src: string } | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    window.yumu
-      .getAlbumArt(url)
-      .then((src) => {
-        if (!cancelled) setLoaded({ url, src: src ?? url })
-      })
-      .catch(() => {
-        if (!cancelled) setLoaded({ url, src: url })
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [url])
-
-  return loaded?.url === url ? loaded.src : null
-}
-
 function Disc({ track, spinning }: { track: Track; spinning: boolean }) {
   const spinRef = useEasedSpin(spinning)
-  const src = useAlbumArtSrc(track.albumArt)
+  const src = useRemoteImage(track.albumArt)
 
   return (
     <div ref={spinRef} className="size-full overflow-hidden rounded-full">

@@ -2,7 +2,7 @@ import { GET_ALBUM_ART } from "@ipc/types"
 import { ipcMain, net } from "electron"
 
 const ALLOWED_HOSTS = [".googleusercontent.com", ".ytimg.com"]
-const MAX_CACHED = 50
+const MAX_CACHED = 300
 
 // Keyed by URL. Holds the promise so a repeated request joins one already in flight.
 const cache = new Map<string, Promise<string | null>>()
