@@ -15,8 +15,20 @@ export type YtmCommand =
   | { type: "toggle" }
   | { type: "next" }
   | { type: "previous" }
-  /** Starts a specific track, the same way clicking it in the YouTube Music UI would. */
-  | { type: "playVideo"; videoId: string; musicVideoType?: string }
+  /**
+   * Starts a specific track, the same way clicking it in the YouTube Music UI would. With a
+   * `playlistId` and `index` it plays inside that album or playlist, and next/previous follow it;
+   * without `index` the queue restarts from the first track.
+   */
+  | {
+      type: "playVideo"
+      videoId: string
+      musicVideoType?: string
+      playlistId?: string
+      index?: number
+    }
+  /** Plays a whole album or playlist; `params` from its shuffle button makes it shuffled. */
+  | { type: "playPlaylist"; playlistId: string; params?: string }
   | { type: "seek"; seconds: number }
   | { type: "setVolume"; volume: number }
 
@@ -27,6 +39,8 @@ export type InnertubeEndpoint = "search" | "browse" | "next"
 export type PlayerApiState = {
   status: PlaybackStatus
   videoId: string | null
+  /** The album or playlist the queue came from, if any. */
+  playlistId: string | null
   title: string
   artist: string
   /** Seconds. */

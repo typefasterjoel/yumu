@@ -13,6 +13,8 @@ type PendingSeek = { seconds: number; expiresAt: number }
 type PlayerState = {
   status: PlaybackStatus
   track: Track | null
+  /** The album or playlist the queue came from, if any. */
+  playlistId: string | null
   /** Seconds. */
   duration: number
   /** Seconds, as of `positionUpdatedAt`. Interpolate in the UI while playing. */
@@ -35,6 +37,7 @@ type PlayerActions = {
 const initialState: PlayerState = {
   status: "idle",
   track: null,
+  playlistId: null,
   duration: 0,
   position: 0,
   positionUpdatedAt: 0,
@@ -53,6 +56,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
   applySnapshot: ({
     status,
     videoId,
+    playlistId,
     title,
     artist,
     album,
@@ -74,7 +78,18 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
 
       return {
         status,
-        track: title ? { videoId, title, artist, album, albumArt } : null,
+        track: title
+          ? {
+              videoId,
+              title,
+              artist,
+              album,
+              // The art is scraped from the DOM and can read empty for a moment (the player bar
+              // re-rendering, say); keep the last good one for the same song instead of blanking.
+              albumArt: albumArt || (state.track?.videoId === videoId ? state.track.albumArt : "")
+            }
+          : null,
+        playlistId,
         duration,
         volume,
         ...(seekPending ? {} : { position, positionUpdatedAt: now, pendingSeek: null })

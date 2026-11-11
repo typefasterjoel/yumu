@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SearchIndexRouteImport } from './routes/search/index'
+import { Route as ArtistBrowseIdIndexRouteImport } from './routes/artist/$browseId/index'
+import { Route as ArtistBrowseIdAllRouteImport } from './routes/artist/$browseId/all'
 import { Route as BrowseBrowseIdIndexRouteImport } from './routes/browse/$browseId/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +25,16 @@ const SearchIndexRoute = SearchIndexRouteImport.update({
   path: '/search/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArtistBrowseIdIndexRoute = ArtistBrowseIdIndexRouteImport.update({
+  id: '/artist/$browseId/',
+  path: '/artist/$browseId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistBrowseIdAllRoute = ArtistBrowseIdAllRouteImport.update({
+  id: '/artist/$browseId/all',
+  path: '/artist/$browseId/all',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BrowseBrowseIdIndexRoute = BrowseBrowseIdIndexRouteImport.update({
   id: '/browse/$browseId/',
   path: '/browse/$browseId/',
@@ -32,30 +44,54 @@ const BrowseBrowseIdIndexRoute = BrowseBrowseIdIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/search/': typeof SearchIndexRoute
+  '/artist/$browseId/all': typeof ArtistBrowseIdAllRoute
+  '/artist/$browseId/': typeof ArtistBrowseIdIndexRoute
   '/browse/$browseId/': typeof BrowseBrowseIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/search': typeof SearchIndexRoute
+  '/artist/$browseId/all': typeof ArtistBrowseIdAllRoute
+  '/artist/$browseId': typeof ArtistBrowseIdIndexRoute
   '/browse/$browseId': typeof BrowseBrowseIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/search/': typeof SearchIndexRoute
+  '/artist/$browseId/all': typeof ArtistBrowseIdAllRoute
+  '/artist/$browseId/': typeof ArtistBrowseIdIndexRoute
   '/browse/$browseId/': typeof BrowseBrowseIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/search/' | '/browse/$browseId/'
+  fullPaths:
+    | '/'
+    | '/search/'
+    | '/artist/$browseId/all'
+    | '/artist/$browseId/'
+    | '/browse/$browseId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search' | '/browse/$browseId'
-  id: '__root__' | '/' | '/search/' | '/browse/$browseId/'
+  to:
+    | '/'
+    | '/search'
+    | '/artist/$browseId/all'
+    | '/artist/$browseId'
+    | '/browse/$browseId'
+  id:
+    | '__root__'
+    | '/'
+    | '/search/'
+    | '/artist/$browseId/all'
+    | '/artist/$browseId/'
+    | '/browse/$browseId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SearchIndexRoute: typeof SearchIndexRoute
+  ArtistBrowseIdAllRoute: typeof ArtistBrowseIdAllRoute
+  ArtistBrowseIdIndexRoute: typeof ArtistBrowseIdIndexRoute
   BrowseBrowseIdIndexRoute: typeof BrowseBrowseIdIndexRoute
 }
 
@@ -75,6 +111,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/artist/$browseId/': {
+      id: '/artist/$browseId/'
+      path: '/artist/$browseId'
+      fullPath: '/artist/$browseId/'
+      preLoaderRoute: typeof ArtistBrowseIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artist/$browseId/all': {
+      id: '/artist/$browseId/all'
+      path: '/artist/$browseId/all'
+      fullPath: '/artist/$browseId/all'
+      preLoaderRoute: typeof ArtistBrowseIdAllRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/browse/$browseId/': {
       id: '/browse/$browseId/'
       path: '/browse/$browseId'
@@ -88,6 +138,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SearchIndexRoute: SearchIndexRoute,
+  ArtistBrowseIdAllRoute: ArtistBrowseIdAllRoute,
+  ArtistBrowseIdIndexRoute: ArtistBrowseIdIndexRoute,
   BrowseBrowseIdIndexRoute: BrowseBrowseIdIndexRoute,
 }
 export const routeTree = rootRouteImport

@@ -18,7 +18,8 @@ export function installYtmMainWorld(): void {
     playVideo: () => void
     pauseVideo: () => void
     seekTo: (seconds: number, allowSeekAhead: boolean) => void
-    getVideoData: () => { video_id?: string; title?: string; author?: string }
+    getVideoData: () => { video_id?: string; title?: string; author?: string; list?: string }
+    getPlaylistId?: () => string | null
   }
 
   type Bridge = {
@@ -50,6 +51,7 @@ export function installYtmMainWorld(): void {
               ? "buffering"
               : "idle",
       videoId: data.video_id || null,
+      playlistId: data.list || player.getPlaylistId?.() || null,
       title: data.title ?? "",
       artist: data.author ?? "",
       duration: player.getDuration() || 0,
@@ -62,27 +64,48 @@ export function installYtmMainWorld(): void {
   // click in the UI uses, so the queue is built by YouTube Music. `ytmusic-app.navigate` and
   // `movie_player.loadVideoById` don't do this: the first is a silent no-op here and the second
   // bypasses the queue.
-  const playVideo = (videoId: string, musicVideoType?: string): void => {
+  //
+  // Only endpoints built here are ever passed on, so the renderer can't hand the page an
+  // arbitrary navigation object.
+  const navigate = (endpoint: Record<string, unknown>): void => {
     const app = document.querySelector("ytmusic-app") as
       (HTMLElement & { handleNavigationEndpoint?: (endpoint: unknown) => void }) | null
     if (typeof app?.handleNavigationEndpoint !== "function") {
-      console.warn("ytmusic-app.handleNavigationEndpoint is unavailable; cannot play", videoId)
+      console.warn("ytmusic-app.handleNavigationEndpoint is unavailable; cannot navigate")
       return
     }
 
-    app.handleNavigationEndpoint({
+    app.handleNavigationEndpoint(endpoint)
+  }
+
+  const playVideo = (
+    videoId: string,
+    musicVideoType?: string,
+    playlistId?: string,
+    index?: number
+  ): void =>
+    navigate({
       watchEndpoint: {
         videoId,
+        // Inside a playlist, `index` is what makes next continue from this track.
+        ...(playlistId && { playlistId }),
+        ...(playlistId && Number.isInteger(index) && { index }),
         ...(musicVideoType && {
           watchEndpointMusicSupportedConfigs: { watchEndpointMusicConfig: { musicVideoType } }
         })
       }
     })
-  }
+
+  const playPlaylist = (playlistId: string, params?: string): void =>
+    navigate({ watchPlaylistEndpoint: { playlistId, ...(params && { params }) } })
 
   const command = (cmd: YtmCommand): void => {
     if (cmd.type === "playVideo") {
-      playVideo(cmd.videoId, cmd.musicVideoType)
+      playVideo(cmd.videoId, cmd.musicVideoType, cmd.playlistId, cmd.index)
+      return
+    }
+    if (cmd.type === "playPlaylist") {
+      playPlaylist(cmd.playlistId, cmd.params)
       return
     }
 
