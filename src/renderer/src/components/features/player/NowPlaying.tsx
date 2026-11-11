@@ -1,6 +1,7 @@
 import { usePlayerStore, type Track } from "@ipc/stores/player-store"
 import ArtistLinks from "@renderer/components/features/artist/ArtistLinks"
 import { useRemoteImage } from "@renderer/hooks/use-remote-image"
+import { Link } from "@tanstack/react-router"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useRef } from "react"
 
@@ -96,7 +97,18 @@ function NowPlaying() {
                 ) : (
                   track.artist
                 )}
-                {track.album && ` • ${track.album}`}
+                {track.album && " • "}
+                {track.albumId ? (
+                  <Link
+                    to="/browse/$browseId"
+                    params={{ browseId: track.albumId }}
+                    className="hover:underline"
+                  >
+                    {track.album}
+                  </Link>
+                ) : (
+                  track.album
+                )}
               </p>
             </div>
           </div>

@@ -117,19 +117,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const readDomTrackExtras = () => {
     const byline = document.querySelector(".ytmusic-player-bar .byline")
     const parts = byline?.textContent?.split("•").map((part) => part.trim())
-    // The player bar links each artist to their channel, e.g. href="channel/UC…". Anything it
-    // doesn't link (the album, a name with no page) is skipped here.
-    const artists = [...(byline?.querySelectorAll("a") ?? [])].flatMap((link) => {
+    // The player bar links each artist to their channel, e.g. href="channel/UC…", and the album to
+    // its page, e.g. href="browse/MPREb_…". Anything it doesn't link (a name with no page) is
+    // skipped here.
+    const links = [...(byline?.querySelectorAll("a") ?? [])]
+    const artists = links.flatMap((link) => {
       const browseId = link.getAttribute("href")?.match(/(?:^|\/)channel\/(UC[\w-]+)/)?.[1]
       const name = link.textContent?.trim()
       return browseId && name ? [{ name, browseId }] : []
     })
+    const albumId =
+      links
+        .map((link) => link.getAttribute("href")?.match(/(?:^|\/)browse\/(MPREb_[\w-]+)/)?.[1])
+        .find(Boolean) ?? null
     const art = document.querySelector("#song-image #img") as HTMLImageElement | null
     const progressBar = document.querySelector("#progress-bar")
     const duration = parseInt(progressBar?.getAttribute("aria-valuemax") ?? "", 10)
     return {
       artists,
       album: parts?.[1] ?? "",
+      albumId,
       albumArt: art?.src ?? "",
       ...(duration > 0 && { duration })
     }
