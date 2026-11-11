@@ -1,4 +1,5 @@
 import { usePlayerStore, type Track } from "@ipc/stores/player-store"
+import ArtistLinks from "@renderer/components/features/artist/ArtistLinks"
 import { useRemoteImage } from "@renderer/hooks/use-remote-image"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useRef } from "react"
@@ -90,7 +91,11 @@ function NowPlaying() {
             <div className="flex grow flex-col gap-1">
               <p className="text-sm font-medium">{track.title}</p>
               <p className="text-muted-foreground text-xs">
-                {track.artist}
+                {track.artists.length > 0 ? (
+                  <ArtistLinks artists={track.artists} className="hover:underline" />
+                ) : (
+                  track.artist
+                )}
                 {track.album && ` • ${track.album}`}
               </p>
             </div>

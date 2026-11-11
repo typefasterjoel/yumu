@@ -7,6 +7,9 @@
 export const YTM_COMMAND = "ytm:command"
 export const YTM_PLAYER_STATE = "ytm:player-state"
 
+// A type-only import is erased at build time, so it doesn't pull a shared chunk into the preload.
+import type { TrackArtist } from "@ipc/youtube/parse-browse"
+
 export type PlaybackStatus = "idle" | "playing" | "paused" | "buffering"
 
 export type YtmCommand =
@@ -53,6 +56,8 @@ export type PlayerApiState = {
 
 /** Player state plus the metadata that only exists in the page DOM. */
 export type PlayerSnapshot = PlayerApiState & {
+  /** The artists the player bar links to; empty when it doesn't link any. */
+  artists: TrackArtist[]
   album: string
   albumArt: string
 }

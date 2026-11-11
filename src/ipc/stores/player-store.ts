@@ -1,7 +1,10 @@
 import { create } from "zustand"
 import type { PlaybackStatus, PlayerSnapshot } from "@ipc/youtube/bridge"
 
-export type Track = Pick<PlayerSnapshot, "videoId" | "title" | "artist" | "album" | "albumArt">
+export type Track = Pick<
+  PlayerSnapshot,
+  "videoId" | "title" | "artist" | "artists" | "album" | "albumArt"
+>
 
 // After a seek, snapshots reporting a position further than this from the target are stale.
 const SEEK_SETTLE_TOLERANCE_SECONDS = 2
@@ -59,6 +62,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
     playlistId,
     title,
     artist,
+    artists,
     album,
     albumArt,
     duration,
@@ -83,9 +87,15 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
               videoId,
               title,
               artist,
+              // Like the art, these are scraped from the DOM and can read empty for a moment (the
+              // player bar re-rendering, say); keep the last good ones for the same song instead of
+              // blanking them.
+              artists: artists.length
+                ? artists
+                : state.track?.videoId === videoId
+                  ? state.track.artists
+                  : [],
               album,
-              // The art is scraped from the DOM and can read empty for a moment (the player bar
-              // re-rendering, say); keep the last good one for the same song instead of blanking.
               albumArt: albumArt || (state.track?.videoId === videoId ? state.track.albumArt : "")
             }
           : null,
