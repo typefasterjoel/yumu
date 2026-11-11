@@ -59,5 +59,7 @@ export type PlayerSnapshot = PlayerApiState & {
   /** The artists the player bar links to; empty when it doesn't link any. */
   artists: TrackArtist[]
   album: string
+  /** The album's page, when the player bar links one. Videos and uploads have none. */
+  albumId: string | null
   albumArt: string
 }

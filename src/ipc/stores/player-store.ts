@@ -3,7 +3,7 @@ import type { PlaybackStatus, PlayerSnapshot } from "@ipc/youtube/bridge"
 
 export type Track = Pick<
   PlayerSnapshot,
-  "videoId" | "title" | "artist" | "artists" | "album" | "albumArt"
+  "videoId" | "title" | "artist" | "artists" | "album" | "albumId" | "albumArt"
 >
 
 // After a seek, snapshots reporting a position further than this from the target are stale.
@@ -64,6 +64,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
     artist,
     artists,
     album,
+    albumId,
     albumArt,
     duration,
     position,
@@ -96,6 +97,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
                   ? state.track.artists
                   : [],
               album,
+              albumId: albumId ?? (state.track?.videoId === videoId ? state.track.albumId : null),
               albumArt: albumArt || (state.track?.videoId === videoId ? state.track.albumArt : "")
             }
           : null,
