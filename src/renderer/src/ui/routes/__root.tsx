@@ -12,7 +12,10 @@ function RootLayout() {
       <Player />
       <div className="flex h-full">
         <Sidebar />
-        <Outlet />
+        {/* min-w-0 lets the page shrink to the window, so wide shelves scroll instead of stretching it. */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <Outlet />
+        </div>
       </div>
     </div>
   )
