@@ -1,8 +1,14 @@
 import { parseCard, type ArtistItem, type ArtistSection } from "@ipc/youtube/parse-artist"
+import { parseTrack, type BrowseTrack } from "@ipc/youtube/parse-browse"
 import { at, list, str, type Json } from "@ipc/youtube/parse-utils"
 
-/** A home row is the same shape as an artist page section: a titled row of cards. */
-export type HomeSection = ArtistSection
+/** A row of cards, shaped like an artist page section. */
+export type HomeCardSection = ArtistSection & { kind: "cards" }
+
+/** A shelf of song rows, e.g. song mixes or long listens. */
+export type HomeTrackSection = { kind: "tracks"; title: string; tracks: BrowseTrack[] }
+
+export type HomeSection = HomeCardSection | HomeTrackSection
 
 export type HomePage = {
   sections: HomeSection[]
@@ -13,18 +19,14 @@ export type HomePage = {
 const nextToken = (sectionList: Json): string | null =>
   str(at(sectionList, "continuations", 0, "nextContinuationData", "continuation")) ?? null
 
-// Only carousels of cards are shown. Song-row shelves ("Long listens") and episodes aren't handled
-// yet, so they come out empty and the row is dropped.
+// Episodes (`musicMultiRowListItemRenderer`) aren't handled, so a row of them comes out empty and
+// is dropped.
 function parseSections(rows: Json[]): HomeSection[] {
   const sections: HomeSection[] = []
   for (const row of rows) {
     const carousel = at(row, "musicCarouselShelfRenderer")
     if (!carousel) continue
-
-    const items = list(at(carousel, "contents"))
-      .map((entry) => parseCard(at(entry, "musicTwoRowItemRenderer")))
-      .filter((item): item is ArtistItem => item !== null)
-    if (!items.length) continue
+    const entries = list(at(carousel, "contents"))
 
     // Some rows carry only a strapline (e.g. "MORE FROM") instead of a title.
     const header = at(carousel, "header", "musicCarouselShelfBasicHeaderRenderer")
@@ -32,7 +34,21 @@ function parseSections(rows: Json[]): HomeSection[] {
       str(at(header, "title", "runs", 0, "text")) ??
       str(at(header, "strapline", "runs", 0, "text")) ??
       ""
-    sections.push({ title, items, seeAll: null })
+
+    const items = entries
+      .map((entry) => parseCard(at(entry, "musicTwoRowItemRenderer")))
+      .filter((item): item is ArtistItem => item !== null)
+    if (items.length) sections.push({ kind: "cards", title, items, seeAll: null })
+
+    // Each song row's play endpoint is its own radio, which starts with that song, so none of them
+    // is at its position in the shelf.
+    const tracks = entries
+      .flatMap((entry) => {
+        const songRow = at(entry, "musicResponsiveListItemRenderer")
+        return songRow ? [parseTrack(songRow, 0)] : []
+      })
+      .filter((track) => track.videoId !== null)
+    if (tracks.length) sections.push({ kind: "tracks", title, tracks })
   }
   return sections
 }
