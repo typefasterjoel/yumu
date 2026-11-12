@@ -28,17 +28,24 @@ function ArtistCard({ item }: { item: ArtistItem }) {
         onClick={open}
         className="hover:bg-muted flex w-full flex-col gap-2 rounded p-2 text-left transition-all"
       >
-        {item.thumbnail && (
-          <RemoteImage
-            src={item.thumbnail}
-            alt=""
-            className={cn(
-              "w-full object-cover",
-              item.kind === "video" ? "aspect-video" : "aspect-square",
-              item.kind === "artist" ? "rounded-full" : "rounded"
-            )}
-          />
-        )}
+        {item.thumbnail &&
+          (item.kind === "video" ? (
+            // Tracks are discs, like the one in the player, so they read differently from albums
+            // while keeping the same square footprint.
+            <div className="border-primary/60 relative aspect-square w-full overflow-hidden rounded-full border-3 shadow-md">
+              <div className="bg-background border-primary/60 absolute top-1/2 left-1/2 z-10 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2" />
+              <RemoteImage src={item.thumbnail} alt="" className="size-full object-cover" />
+            </div>
+          ) : (
+            <RemoteImage
+              src={item.thumbnail}
+              alt=""
+              className={cn(
+                "aspect-square w-full object-cover",
+                item.kind === "artist" ? "rounded-full" : "rounded"
+              )}
+            />
+          ))}
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{item.title}</p>
           <p className="text-muted-foreground truncate text-xs">{item.subtitle}</p>
