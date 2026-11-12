@@ -5,6 +5,7 @@ import {
   type ArtistGrid,
   type ArtistPage
 } from "@ipc/youtube/parse-artist"
+import { parseHomeContinuation, parseHomeResponse, type HomePage } from "@ipc/youtube/parse-home"
 import {
   parseBrowseContinuation,
   parseBrowseResponse,
@@ -41,4 +42,12 @@ export async function browseContinuation(
     await requestInnertube("browse", { continuation: token }),
     startIndex
   )
+}
+
+/** The first page of home rows, or the next one when given a continuation token. */
+export async function browseHome(token?: string): Promise<HomePage> {
+  if (token) return parseHomeContinuation(await requestInnertube("browse", { continuation: token }))
+  const page = parseHomeResponse(await requestInnertube("browse", { browseId: "FEmusic_home" }))
+  if (!page) throw new Error("The home page couldn't be read; YouTube Music may have changed it.")
+  return page
 }

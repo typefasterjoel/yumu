@@ -1,4 +1,5 @@
 import Player from "@renderer/components/features/player/Player"
+import Sidebar from "@renderer/components/features/sidebar/Sidebar"
 import { useHistoryShortcuts } from "@renderer/hooks/use-history-shortcuts"
 import { createRootRoute, Outlet } from "@tanstack/react-router"
 
@@ -10,7 +11,7 @@ function RootLayout() {
     <div className="bg-background fixed inset-0 z-10 flex flex-col gap-4 pt-10">
       <Player />
       <div className="flex h-full">
-        <aside className="border-border w-60 shrink-0 grow-0 border-r">Sidebar</aside>
+        <Sidebar />
         <Outlet />
       </div>
     </div>
