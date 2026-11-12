@@ -1,4 +1,4 @@
-import ArtistSection from "@renderer/components/features/artist/ArtistSection"
+import HomeSection from "@renderer/components/features/home/HomeSection"
 import { Button } from "@renderer/components/ui/button"
 import { useHome } from "@renderer/queries/home"
 import { createFileRoute } from "@tanstack/react-router"
@@ -24,7 +24,7 @@ function HomePage() {
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4">
           {data.pages.flatMap((page, p) =>
             page.sections.map((section, i) => (
-              <ArtistSection key={`${p}:${i}:${section.title}`} section={section} />
+              <HomeSection key={`${p}:${i}:${section.title}`} section={section} />
             ))
           )}
           {hasNextPage && (
