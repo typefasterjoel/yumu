@@ -30,7 +30,7 @@ function ArtistSection({ section }: { section: ArtistSectionData }) {
         <h2 className="m-0 text-xl font-bold">{section.title}</h2>
         <SeeAllLink section={section} />
       </div>
-      <ul className="m-0 flex list-none gap-2 overflow-x-auto p-0 pb-2">
+      <ul className="m-0 flex [scrollbar-width:thin] [scrollbar-color:var(--muted-foreground)_transparent] list-none gap-2 overflow-x-auto p-0 pb-2 [color-scheme:dark]">
         {section.items.map((item, i) => (
           <ArtistCard key={`${i}:${item.title}`} item={item} />
         ))}
