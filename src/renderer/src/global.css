@@ -124,6 +124,16 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Scrollbars are invisible until the pointer is over something that scrolls, then fade in. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 300ms ease;
+  }
+  *:hover {
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent) transparent;
+  }
   html {
     @apply font-sans;
 
