@@ -82,7 +82,7 @@ const parseHeader = (header: Json): ArtistHeader => ({
 
 // Cards are classified by where they link, never by the section's (translated) title. Podcasts and
 // episodes aren't handled, so they return null and their sections come out empty.
-const parseCard = (card: Json): ArtistItem | null => {
+export const parseCard = (card: Json): ArtistItem | null => {
   const base: ItemBase = {
     title: runTexts(at(card, "title", "runs")).join(""),
     subtitle: runTexts(at(card, "subtitle", "runs")).join(""),
