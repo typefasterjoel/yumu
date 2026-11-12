@@ -80,7 +80,12 @@ const parseHeader = (response: Json): BrowseHeader | null => {
   // Playlists you own wrap the same header in an editable-playlist renderer.
   const header =
     at(first, "musicResponsiveHeaderRenderer") ??
-    at(first, "musicEditablePlaylistDetailHeaderRenderer", "header", "musicResponsiveHeaderRenderer")
+    at(
+      first,
+      "musicEditablePlaylistDetailHeaderRenderer",
+      "header",
+      "musicResponsiveHeaderRenderer"
+    )
   if (!header) return null
 
   const buttons = list(at(header, "buttons"))
