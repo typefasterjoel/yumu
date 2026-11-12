@@ -42,7 +42,7 @@ function ArtistCard({ item }: { item: ArtistItem }) {
               alt=""
               className={cn(
                 "aspect-square w-full object-cover",
-                item.kind === "artist" ? "rounded-full" : "rounded"
+                item.kind === "artist" ? "rounded-3xl" : "rounded"
               )}
             />
           ))}
