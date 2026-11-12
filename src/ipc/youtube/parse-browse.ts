@@ -65,7 +65,7 @@ const musicConfigOf = (watchEndpoint: Json) =>
   )
 
 const parseHeader = (response: Json): BrowseHeader | null => {
-  const header = at(
+  const first = at(
     response,
     "contents",
     "twoColumnBrowseResultsRenderer",
@@ -75,9 +75,12 @@ const parseHeader = (response: Json): BrowseHeader | null => {
     "content",
     "sectionListRenderer",
     "contents",
-    0,
-    "musicResponsiveHeaderRenderer"
+    0
   )
+  // Playlists you own wrap the same header in an editable-playlist renderer.
+  const header =
+    at(first, "musicResponsiveHeaderRenderer") ??
+    at(first, "musicEditablePlaylistDetailHeaderRenderer", "header", "musicResponsiveHeaderRenderer")
   if (!header) return null
 
   const buttons = list(at(header, "buttons"))
