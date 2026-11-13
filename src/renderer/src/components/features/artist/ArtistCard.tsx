@@ -30,8 +30,6 @@ function ArtistCard({ item }: { item: ArtistItem }) {
       >
         {item.thumbnail &&
           (item.kind === "video" ? (
-            // Tracks are discs, like the one in the player, so they read differently from albums
-            // while keeping the same square footprint.
             <div className="border-primary/60 relative aspect-square w-full overflow-hidden rounded-full border-3 shadow-md">
               <div className="bg-background border-primary/60 absolute top-1/2 left-1/2 z-10 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2" />
               <RemoteImage src={item.thumbnail} alt="" className="size-full object-cover" />

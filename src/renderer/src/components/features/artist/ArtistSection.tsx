@@ -6,7 +6,6 @@ import { cn } from "cn"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-/** How far an arrow scrolls, as a share of the visible width, so the last card stays in view. */
 const SCROLL_STEP = 0.8
 
 function SeeAllLink({ section }: { section: ArtistSectionData }) {
@@ -30,7 +29,6 @@ function SeeAllLink({ section }: { section: ArtistSectionData }) {
   )
 }
 
-// Tracks whether a scrolling row has more to show on either side, for the arrow buttons.
 function useScrollEdges() {
   const ref = useRef<HTMLUListElement>(null)
   const [edges, setEdges] = useState({ canScroll: false, atStart: true, atEnd: true })
@@ -56,7 +54,6 @@ function useScrollEdges() {
     const el = ref.current
     if (!el) return
     update()
-    // The row resizes with the window, and its content can grow as cards load.
     const observer = new ResizeObserver(update)
     observer.observe(el)
     for (const child of el.children) observer.observe(child)
@@ -80,7 +77,6 @@ function ArtistSection({ section }: { section: ArtistSectionData }) {
         <h2 className="m-0 text-xl font-bold">{section.title}</h2>
         <div className="flex items-center gap-3">
           <SeeAllLink section={section} />
-          {/* Hidden rather than removed when the row fits, so every header keeps the same height. */}
           <div className={cn("flex gap-1", !canScroll && "invisible")}>
             <Button
               variant="ghost"

@@ -21,7 +21,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 const resultKey = (result: SearchResult) =>
   `${result.kind}:${"videoId" in result ? result.videoId : result.browseId}`
 
-/** The order the groups appear in, after the top result. */
 const GROUPS: { kind: SearchResult["kind"]; heading: string }[] = [
   { kind: "song", heading: "Songs" },
   { kind: "artist", heading: "Artists" },
@@ -31,8 +30,6 @@ const GROUPS: { kind: SearchResult["kind"]; heading: string }[] = [
   { kind: "episode", heading: "Episodes" }
 ]
 
-// A search box in a dialog. Picking a song plays it; anything else opens its page. The last
-// search stays put when it closes, so reopening picks up where you left off.
 function SearchCommand() {
   const open = useSearchCommand((s) => s.open)
   const setOpen = useSearchCommand((s) => s.setOpen)
@@ -42,7 +39,6 @@ function SearchCommand() {
   const debounced = useDebouncedValue(input, 300)
   const { data, isFetching, error } = useSearch(debounced)
 
-  // Ctrl+K (Cmd+K on a Mac) toggles it from anywhere.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -54,9 +50,7 @@ function SearchCommand() {
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [setOpen])
 
-  // The top result usually repeats as a normal result, and cmdk needs every item to be unique.
   const { top, groups } = useMemo(() => {
-    // Emptying the box clears the results at once instead of after the debounce.
     const shown = input.trim() ? data : undefined
     const topResult = shown?.topResult ?? null
     const rest = (shown?.results ?? []).filter(
@@ -94,7 +88,6 @@ function SearchCommand() {
   )
 
   const hasQuery = input.trim().length >= 2
-  // Still typing, or the request is in flight.
   const searching = isFetching || debounced !== input
 
   return (
@@ -105,7 +98,7 @@ function SearchCommand() {
       description="Search YouTube Music for songs, artists, albums and playlists."
       className="sm:max-w-xl"
     >
-      {/* YouTube Music already ranks the results, so cmdk's own filtering is off. */}
+      {/* YouTube already ranks the results, so cmdk's own filtering is off */}
       <Command shouldFilter={false}>
         <CommandInput
           ref={inputRef}
@@ -113,7 +106,6 @@ function SearchCommand() {
           onValueChange={setInput}
           placeholder="Search YouTube Music"
           autoFocus
-          // The last search is kept between openings, selected so typing replaces it.
           onFocus={(e) => e.currentTarget.select()}
         >
           {input && (
@@ -122,7 +114,6 @@ function SearchCommand() {
                 size="icon-xs"
                 variant="ghost"
                 aria-label="Clear search"
-                // Keeps focus in the input, so you can type the next search straight away.
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setInput("")

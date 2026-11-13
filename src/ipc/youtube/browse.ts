@@ -44,7 +44,6 @@ export async function browseContinuation(
   )
 }
 
-/** The first page of home rows, or the next one when given a continuation token. */
 export async function browseHome(token?: string): Promise<HomePage> {
   if (token) return parseHomeContinuation(await requestInnertube("browse", { continuation: token }))
   const page = parseHomeResponse(await requestInnertube("browse", { browseId: "FEmusic_home" }))
