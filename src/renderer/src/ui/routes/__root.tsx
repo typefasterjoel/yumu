@@ -8,10 +8,10 @@ function RootLayout() {
   useHistoryShortcuts()
 
   return (
-    <div className="bg-background fixed inset-0 z-10 flex flex-col gap-4 pt-10">
-      <Player />
-      <div className="flex h-full">
-        <Sidebar />
+    <div className="bg-primary fixed inset-0 z-10 flex flex-col gap-4 pt-10">
+      <Sidebar />
+      <div className="bg-background relative ms-13 flex h-full overflow-hidden rounded-tl-3xl">
+        <Player />
         {/* min-w-0 lets the page shrink to the window, so wide shelves scroll instead of stretching it. */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <Outlet />
