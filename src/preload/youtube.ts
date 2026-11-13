@@ -77,30 +77,35 @@ document.addEventListener("DOMContentLoaded", () => {
     getAudioDevices()
   })
 
+  // YouTube Music has two player bars: the old `ytmusic-player-bar`, and a newer
+  // `ytmusic-miniplayer` whose buttons have no ids and only translated labels, so they are found by
+  // the class on the div around each one. Both are listed because the new one is rolling out
+  // gradually, so a given session can have either.
+  const clickPlayerButton = (selectors: string) => {
+    const button = document.querySelector<HTMLButtonElement>(selectors)
+    button?.click()
+    return button !== null
+  }
+
   // Media control functions
   const playPause = () => {
-    const playButton = document.getElementById("play-pause-button") as HTMLButtonElement
-    if (playButton) {
-      playButton.click()
-    }
+    const clicked = clickPlayerButton(
+      "#play-pause-button, ytmusic-miniplayer .ytmusicPlayerControlsPlayPauseButton button"
+    )
+    // Pausing doesn't touch the queue, so the player API is a safe fallback if the markup changes.
+    if (!clicked) webFrame.executeJavaScript(`window.__yumuBridge?.command({ type: "toggle" })`)
   }
 
   const nextTrack = () => {
-    const nextButton = document.querySelector(
-      '.next-button, [data-id="next-button"]'
-    ) as HTMLButtonElement
-    if (nextButton) {
-      nextButton.click()
-    }
+    clickPlayerButton(
+      '.next-button, [data-id="next-button"], ytmusic-miniplayer .ytmusicPlayerControlsNextButton button'
+    )
   }
 
   const previousTrack = () => {
-    const prevButton = document.querySelector(
-      '.previous-button, [data-id="previous-button"]'
-    ) as HTMLButtonElement
-    if (prevButton) {
-      prevButton.click()
-    }
+    clickPlayerButton(
+      '.previous-button, [data-id="previous-button"], ytmusic-miniplayer .ytmusicPlayerControlsPreviousButton button'
+    )
   }
 
   // Listen for media key events from main process
@@ -115,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // length is read from the progress bar too: YouTube Music sets `aria-valuemax` to it in seconds
   // as soon as the song loads, which is more reliable than `getDuration()`.
   const readDomTrackExtras = () => {
-    const byline = document.querySelector(".ytmusic-player-bar .byline")
+    const byline = document.querySelector(".ytmusic-player-bar .byline, .ytmusicTrackInfoByline")
     const parts = byline?.textContent?.split("•").map((part) => part.trim())
     // The player bar links each artist to their channel, e.g. href="channel/UC…", and the album to
     // its page, e.g. href="browse/MPREb_…". Anything it doesn't link (a name with no page) is
@@ -130,14 +135,18 @@ document.addEventListener("DOMContentLoaded", () => {
       links
         .map((link) => link.getAttribute("href")?.match(/(?:^|\/)browse\/(MPREb_[\w-]+)/)?.[1])
         .find(Boolean) ?? null
-    const art = document.querySelector("#song-image #img") as HTMLImageElement | null
-    const progressBar = document.querySelector("#progress-bar")
-    const duration = parseInt(progressBar?.getAttribute("aria-valuemax") ?? "", 10)
+    const oldArt = document.querySelector<HTMLImageElement>("#song-image #img")
+    // The new player bar only has a 60px thumbnail; the size is in the URL, so ask for the big one.
+    const newArt = document.querySelector<HTMLImageElement>(".ytmusicTrackInfoThumbnail")
+    const albumArt = oldArt?.src || newArt?.src.replace(/=w\d+-h\d+/, "=w544-h544") || ""
+    const oldProgress = document.querySelector("#progress-bar")?.getAttribute("aria-valuemax")
+    const newProgress = document.querySelector(".ytMusicMiniPlayerProgressBar")?.getAttribute("max")
+    const duration = parseInt(oldProgress ?? newProgress ?? "", 10)
     return {
       artists,
       album: parts?.[1] ?? "",
       albumId,
-      albumArt: art?.src ?? "",
+      albumArt,
       ...(duration > 0 && { duration })
     }
   }
