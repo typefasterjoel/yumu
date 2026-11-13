@@ -4,13 +4,28 @@ import { at, list, str, type Json } from "@ipc/youtube/parse-utils"
 
 export type HomeCardSection = ArtistSection & { kind: "cards" }
 
-export type HomeTrackSection = { kind: "tracks"; title: string; tracks: BrowseTrack[] }
+export type HomeTrackSection = {
+  kind: "tracks"
+  title: string
+  tracks: BrowseTrack[]
+  rowsPerColumn: number
+}
 
 export type HomeSection = HomeCardSection | HomeTrackSection
 
 export type HomePage = {
   sections: HomeSection[]
   continuation: string | null
+}
+
+const DEFAULT_ROWS_PER_COLUMN = 4
+const MAX_ROWS_PER_COLUMN = 6
+
+const rowsPerColumnOf = (carousel: Json): number => {
+  const rows = Number(at(carousel, "numItemsPerColumn"))
+  return Number.isInteger(rows) && rows > 0
+    ? Math.min(rows, MAX_ROWS_PER_COLUMN)
+    : DEFAULT_ROWS_PER_COLUMN
 }
 
 const nextToken = (sectionList: Json): string | null =>
@@ -41,7 +56,9 @@ function parseSections(rows: Json[]): HomeSection[] {
         return songRow ? [parseTrack(songRow, 0)] : []
       })
       .filter((track) => track.videoId !== null)
-    if (tracks.length) sections.push({ kind: "tracks", title, tracks })
+    if (tracks.length) {
+      sections.push({ kind: "tracks", title, tracks, rowsPerColumn: rowsPerColumnOf(carousel) })
+    }
   }
   return sections
 }
