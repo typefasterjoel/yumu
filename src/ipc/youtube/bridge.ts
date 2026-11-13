@@ -1,13 +1,10 @@
-// Channel names and shared types for the YouTube Music bridge.
-//
-// These live here rather than in `@ipc/types` on purpose: `preload/youtube.ts` imports them at
-// runtime, and `@ipc/types` is also imported by the main preload (via api.ts). A module shared by
-// both preload entries would be split into a chunk, which a sandboxed preload can't `require`.
+// Kept out of `@ipc/types` on purpose: both preloads would share it, and a shared chunk can't be
+// `require`d by a sandboxed preload.
 
 export const YTM_COMMAND = "ytm:command"
 export const YTM_PLAYER_STATE = "ytm:player-state"
+export const YTM_QUEUE = "ytm:queue"
 
-// A type-only import is erased at build time, so it doesn't pull a shared chunk into the preload.
 import type { TrackArtist } from "@ipc/youtube/parse-browse"
 
 export type PlaybackStatus = "idle" | "playing" | "paused" | "buffering"
@@ -18,11 +15,7 @@ export type YtmCommand =
   | { type: "toggle" }
   | { type: "next" }
   | { type: "previous" }
-  /**
-   * Starts a specific track, the same way clicking it in the YouTube Music UI would. With a
-   * `playlistId` and `index` it plays inside that album or playlist, and next/previous follow it;
-   * without `index` the queue restarts from the first track.
-   */
+  // Without `index`, next restarts the queue from its first track.
   | {
       type: "playVideo"
       videoId: string
@@ -30,36 +23,50 @@ export type YtmCommand =
       playlistId?: string
       index?: number
     }
-  /** Plays a whole album or playlist; `params` from its shuffle button makes it shuffled. */
   | { type: "playPlaylist"; playlistId: string; params?: string }
+  | { type: "playQueueItem"; list: QueueList; index: number }
   | { type: "seek"; seconds: number }
   | { type: "setVolume"; volume: number }
 
-/** Innertube endpoints the bridge is allowed to call. */
+export type QueueList = "items" | "autoplay"
+
+export type QueueItem = {
+  videoId: string
+  // The audio or video version of the same song; the player can be on either.
+  alternateVideoId: string | null
+  title: string
+  artists: TrackArtist[]
+  album: string
+  albumId: string | null
+  thumbnail: string
+  duration: string
+}
+
+export type QueueSnapshot = {
+  source: string
+  items: QueueItem[]
+  autoplay: QueueItem[]
+  current: { list: QueueList; index: number } | null
+  shuffle: boolean
+  repeat: "none" | "all" | "one"
+}
+
 export type InnertubeEndpoint = "search" | "browse" | "next"
 
-/** What the main-world script can read straight from the YouTube Music player. */
 export type PlayerApiState = {
   status: PlaybackStatus
   videoId: string | null
-  /** The album or playlist the queue came from, if any. */
   playlistId: string | null
   title: string
   artist: string
-  /** Seconds. */
   duration: number
-  /** Seconds. */
   position: number
-  /** 0-100. */
   volume: number
 }
 
-/** Player state plus the metadata that only exists in the page DOM. */
 export type PlayerSnapshot = PlayerApiState & {
-  /** The artists the player bar links to; empty when it doesn't link any. */
   artists: TrackArtist[]
   album: string
-  /** The album's page, when the player bar links one. Videos and uploads have none. */
   albumId: string | null
   albumArt: string
 }
