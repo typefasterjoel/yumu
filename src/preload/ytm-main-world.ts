@@ -1,12 +1,14 @@
-import type { InnertubeEndpoint, PlayerApiState, YtmCommand } from "@ipc/youtube/bridge"
+import type {
+  InnertubeEndpoint,
+  PlayerApiState,
+  QueueItem,
+  QueueSnapshot,
+  YtmCommand
+} from "@ipc/youtube/bridge"
 
 /**
- * Runs in the page's main world, where `#movie_player` exposes its player API (the preload's
- * isolated world can't see those methods). The preload injects this with
- * `webFrame.executeJavaScript` because the page's Trusted Types policy blocks <script> tags.
- *
- * It is stringified with `.toString()`, so it must be fully self-contained: no imports, no
- * references to anything outside the function body.
+ * Injected into the page with `webFrame.executeJavaScript` (Trusted Types blocks <script>) and
+ * stringified with `.toString()`, so it must be self-contained: no imports or outside references.
  */
 export function installYtmMainWorld(): void {
   type MoviePlayer = HTMLElement & {
@@ -24,6 +26,7 @@ export function installYtmMainWorld(): void {
 
   type Bridge = {
     getState: () => PlayerApiState | null
+    getQueue: () => QueueSnapshot | null
     command: (command: YtmCommand) => void
     request: (endpoint: InnertubeEndpoint, body: Record<string, unknown>) => Promise<unknown>
   }
@@ -41,7 +44,7 @@ export function installYtmMainWorld(): void {
     const playerState = player.getPlayerState()
 
     return {
-      // 1 playing, 2 paused, 3 buffering; -1 unstarted, 0 ended, 5 cued all read as idle.
+      // 1 playing, 2 paused, 3 buffering; anything else is idle.
       status:
         playerState === 1
           ? "playing"
@@ -60,13 +63,120 @@ export function installYtmMainWorld(): void {
     }
   }
 
-  // Playing a specific track goes through the app's own navigation handler, which is what a
-  // click in the UI uses, so the queue is built by YouTube Music. `ytmusic-app.navigate` and
-  // `movie_player.loadVideoById` don't do this: the first is a silent no-op here and the second
-  // bypasses the queue.
-  //
-  // Only endpoints built here are ever passed on, so the renderer can't hand the page an
-  // arbitrary navigation object.
+  type Loose = Record<string, unknown> | undefined
+  type QueueStore = { items?: unknown[]; automixItems?: unknown[]; [key: string]: unknown }
+
+  const asObject = (value: unknown): Loose =>
+    value && typeof value === "object" ? (value as Record<string, unknown>) : undefined
+  const asList = (value: unknown): unknown[] => (Array.isArray(value) ? value : [])
+  const asString = (value: unknown): string => (typeof value === "string" ? value : "")
+
+  const getQueueStore = (): QueueStore | null => {
+    const element = document.querySelector("ytmusic-player-queue") as
+      (HTMLElement & { getState?: () => { queue?: QueueStore } }) | null
+    return element?.getState?.().queue ?? null
+  }
+
+  const rowRenderers = (entry: unknown) => {
+    const row = asObject(entry)
+    const wrapper = asObject(row?.playlistPanelVideoWrapperRenderer)
+    const primary = asObject(
+      asObject(wrapper?.primaryRenderer)?.playlistPanelVideoRenderer ??
+        row?.playlistPanelVideoRenderer
+    )
+    const counterpart = asObject(
+      asObject(asObject(asList(wrapper?.counterpart)[0])?.counterpartRenderer)
+        ?.playlistPanelVideoRenderer
+    )
+    return { primary, counterpart }
+  }
+
+  const pageTypeOf = (run: unknown): string =>
+    asString(
+      asObject(
+        asObject(
+          asObject(asObject(asObject(run)?.navigationEndpoint)?.browseEndpoint)
+            ?.browseEndpointContextSupportedConfigs
+        )?.browseEndpointContextMusicConfig
+      )?.pageType
+    )
+
+  const browseIdOf = (run: unknown): string =>
+    asString(asObject(asObject(asObject(run)?.navigationEndpoint)?.browseEndpoint)?.browseId)
+
+  const parseQueueItem = (entry: unknown): QueueItem | null => {
+    const { primary, counterpart } = rowRenderers(entry)
+    const videoId = asString(primary?.videoId)
+    if (!primary || !videoId) return null
+
+    const runs = asList(asObject(primary.longBylineText)?.runs)
+    const artists = runs
+      .filter((run) => pageTypeOf(run) === "MUSIC_PAGE_TYPE_ARTIST")
+      .map((run) => ({
+        name: asString(asObject(run)?.text),
+        browseId: browseIdOf(run) || null
+      }))
+    const firstRun = asString(asObject(runs[0])?.text).trim()
+    const albumRun = runs.find((run) => pageTypeOf(run) === "MUSIC_PAGE_TYPE_ALBUM")
+    const thumbnails = asList(asObject(asObject(primary.thumbnail))?.thumbnails)
+
+    return {
+      videoId,
+      alternateVideoId: asString(counterpart?.videoId) || null,
+      title: asString(asObject(asList(asObject(primary.title)?.runs)[0])?.text),
+      artists: artists.length ? artists : firstRun ? [{ name: firstRun, browseId: null }] : [],
+      album: albumRun ? asString(asObject(albumRun)?.text) : "",
+      albumId: albumRun ? browseIdOf(albumRun) || null : null,
+      thumbnail: asString(asObject(thumbnails[thumbnails.length - 1])?.url),
+      duration: asString(asObject(asList(asObject(primary.lengthText)?.runs)[0])?.text)
+    }
+  }
+
+  const parseQueueList = (entries: unknown[]): QueueItem[] =>
+    entries.flatMap((entry) => parseQueueItem(entry) ?? [])
+
+  const getQueue = (): QueueSnapshot | null => {
+    const queue = getQueueStore()
+    if (!queue) return null
+
+    const rawItems = asList(queue.items)
+    const rawAutoplay = asList(queue.automixItems)
+    const items = parseQueueList(rawItems)
+    const autoplay = parseQueueList(rawAutoplay)
+
+    // The page leaves stale `selected` flags, so they only break ties between matching rows.
+    const playingId = getPlayer()?.getVideoData().video_id
+    const isSelected = (entry: unknown) => {
+      const { primary, counterpart } = rowRenderers(entry)
+      return primary?.selected === true || counterpart?.selected === true
+    }
+    const find = (list: QueueItem[], raw: unknown[]): number => {
+      const matches = list.flatMap((item, index) =>
+        item.videoId === playingId || item.alternateVideoId === playingId ? [index] : []
+      )
+      return matches.filter((index) => isSelected(raw[index])).pop() ?? matches[0] ?? -1
+    }
+    const inItems = playingId ? find(items, rawItems) : -1
+    const inAutoplay = playingId && inItems < 0 ? find(autoplay, rawAutoplay) : -1
+
+    const header = asObject(queue.header)
+    return {
+      source: asString(asObject(asList(asObject(header?.subtitle)?.runs)[0])?.text),
+      items,
+      autoplay,
+      current:
+        inItems >= 0
+          ? { list: "items", index: inItems }
+          : inAutoplay >= 0
+            ? { list: "autoplay", index: inAutoplay }
+            : null,
+      shuffle: queue.shuffleEnabled === true,
+      repeat: queue.repeatMode === "ALL" ? "all" : queue.repeatMode === "ONE" ? "one" : "none"
+    }
+  }
+
+  // Must go through the app's handler: `ytmusic-app.navigate` is a no-op and `loadVideoById`
+  // bypasses the queue. Only endpoints built here or taken from the page's own queue get passed on.
   const navigate = (endpoint: Record<string, unknown>): void => {
     const app = document.querySelector("ytmusic-app") as
       (HTMLElement & { handleNavigationEndpoint?: (endpoint: unknown) => void }) | null
@@ -87,7 +197,6 @@ export function installYtmMainWorld(): void {
     navigate({
       watchEndpoint: {
         videoId,
-        // Inside a playlist, `index` is what makes next continue from this track.
         ...(playlistId && { playlistId }),
         ...(playlistId && Number.isInteger(index) && { index }),
         ...(musicVideoType && {
@@ -99,7 +208,18 @@ export function installYtmMainWorld(): void {
   const playPlaylist = (playlistId: string, params?: string): void =>
     navigate({ watchPlaylistEndpoint: { playlistId, ...(params && { params }) } })
 
+  const playQueueItem = (list: "items" | "autoplay", index: number): void => {
+    const queue = getQueueStore()
+    const entries = asList(list === "autoplay" ? queue?.automixItems : queue?.items)
+    const endpoint = rowRenderers(entries[index]).primary?.navigationEndpoint
+    if (endpoint) navigate(endpoint as Record<string, unknown>)
+  }
+
   const command = (cmd: YtmCommand): void => {
+    if (cmd.type === "playQueueItem") {
+      playQueueItem(cmd.list, cmd.index)
+      return
+    }
     if (cmd.type === "playVideo") {
       playVideo(cmd.videoId, cmd.musicVideoType, cmd.playlistId, cmd.index)
       return
@@ -137,10 +257,7 @@ export function installYtmMainWorld(): void {
     return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("")
   }
 
-  // YouTube only treats a request as coming from the signed-in user when it carries this header,
-  // even though the cookies are sent anyway. Without it a playlist comes back as its logged-out
-  // version: mostly music videos instead of the audio tracks the YouTube Music page itself shows.
-  // It is the same value the page computes for its own requests. Null when signed out.
+  // Without this header YouTube answers as if signed out, e.g. playlists come back as music videos.
   const authorizationHeader = async (origin: string): Promise<string | null> => {
     const sapisid = document.cookie
       .split("; ")
@@ -152,8 +269,6 @@ export function installYtmMainWorld(): void {
     return `SAPISIDHASH ${timestamp}_${await sha1Hex(`${timestamp} ${sapisid} ${origin}`)}`
   }
 
-  // Calls YouTube Music's own Innertube API from inside the page, so the user's cookies are sent
-  // and the client context comes from the page's `ytcfg` instead of being hardcoded.
   const request = async (
     endpoint: InnertubeEndpoint,
     body: Record<string, unknown>
@@ -173,7 +288,6 @@ export function installYtmMainWorld(): void {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        // The same headers the page sends itself.
         "X-Origin": location.origin,
         "X-Youtube-Client-Name": String(ytcfg?.get("INNERTUBE_CONTEXT_CLIENT_NAME")),
         "X-Youtube-Client-Version": String(ytcfg?.get("INNERTUBE_CONTEXT_CLIENT_VERSION")),
@@ -190,5 +304,5 @@ export function installYtmMainWorld(): void {
     return response.json()
   }
 
-  host.__yumuBridge = { getState, command, request }
+  host.__yumuBridge = { getState, getQueue, command, request }
 }

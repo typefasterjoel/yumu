@@ -2,8 +2,10 @@ import { ipcRenderer, webFrame } from "electron"
 import {
   YTM_COMMAND,
   YTM_PLAYER_STATE,
+  YTM_QUEUE,
   type PlayerApiState,
   type PlayerSnapshot,
+  type QueueSnapshot,
   type YtmCommand
 } from "@ipc/youtube/bridge"
 import { installYtmMainWorld } from "./ytm-main-world"
@@ -13,7 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentSinkId = ""
 
-  // Get Audio Devices
   const getAudioDevices = async () => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -31,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   getAudioDevices()
 
-  // Listen for audio device changes
   ipcRenderer.on("audio:set-device", async (_, deviceId) => {
     currentSinkId = deviceId
     console.log(`Setting audio output device to: ${deviceId}`)
@@ -47,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 
-  // Re-apply the stored sinkId to a video element when it is inserted or recreated
   const applyStoredSinkId = async (videoEl: HTMLVideoElement) => {
     if (!currentSinkId) return
     if (videoEl.sinkId === currentSinkId) return
@@ -77,22 +76,17 @@ document.addEventListener("DOMContentLoaded", () => {
     getAudioDevices()
   })
 
-  // YouTube Music has two player bars: the old `ytmusic-player-bar`, and a newer
-  // `ytmusic-miniplayer` whose buttons have no ids and only translated labels, so they are found by
-  // the class on the div around each one. Both are listed because the new one is rolling out
-  // gradually, so a given session can have either.
+  // Two player bars exist while the new one rolls out; its buttons have no ids, so match the wrapper class.
   const clickPlayerButton = (selectors: string) => {
     const button = document.querySelector<HTMLButtonElement>(selectors)
     button?.click()
     return button !== null
   }
 
-  // Media control functions
   const playPause = () => {
     const clicked = clickPlayerButton(
       "#play-pause-button, ytmusic-miniplayer .ytmusicPlayerControlsPlayPauseButton button"
     )
-    // Pausing doesn't touch the queue, so the player API is a safe fallback if the markup changes.
     if (!clicked) webFrame.executeJavaScript(`window.__yumuBridge?.command({ type: "toggle" })`)
   }
 
@@ -108,23 +102,16 @@ document.addEventListener("DOMContentLoaded", () => {
     )
   }
 
-  // Listen for media key events from main process
   ipcRenderer.on("media:play-pause", playPause)
   ipcRenderer.on("media:next-track", nextTrack)
   ipcRenderer.on("media:previous-track", previousTrack)
 
-  // Yumu bridge: player state out to the custom UI, commands in.
   webFrame.executeJavaScript(`(${installYtmMainWorld.toString()})()`)
 
-  // Album, art and the artists' pages only exist in the DOM, not in the player API. The song's
-  // length is read from the progress bar too: YouTube Music sets `aria-valuemax` to it in seconds
-  // as soon as the song loads, which is more reliable than `getDuration()`.
+  // Duration comes from the progress bar: it is set as soon as the song loads, unlike `getDuration()`.
   const readDomTrackExtras = () => {
     const byline = document.querySelector(".ytmusic-player-bar .byline, .ytmusicTrackInfoByline")
     const parts = byline?.textContent?.split("•").map((part) => part.trim())
-    // The player bar links each artist to their channel, e.g. href="channel/UC…", and the album to
-    // its page, e.g. href="browse/MPREb_…". Anything it doesn't link (a name with no page) is
-    // skipped here.
     const links = [...(byline?.querySelectorAll("a") ?? [])]
     const artists = links.flatMap((link) => {
       const browseId = link.getAttribute("href")?.match(/(?:^|\/)channel\/(UC[\w-]+)/)?.[1]
@@ -136,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .map((link) => link.getAttribute("href")?.match(/(?:^|\/)browse\/(MPREb_[\w-]+)/)?.[1])
         .find(Boolean) ?? null
     const oldArt = document.querySelector<HTMLImageElement>("#song-image #img")
-    // The new player bar only has a 60px thumbnail; the size is in the URL, so ask for the big one.
+    // Only a 60px thumbnail; the size is in the URL.
     const newArt = document.querySelector<HTMLImageElement>(".ytmusicTrackInfoThumbnail")
     const albumArt = oldArt?.src || newArt?.src.replace(/=w\d+-h\d+/, "=w544-h544") || ""
     const oldProgress = document.querySelector("#progress-bar")?.getAttribute("aria-valuemax")
@@ -153,6 +140,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let lastVideoId: string | null = null
 
+  let lastQueueKey = ""
+  const queueKey = (queue: QueueSnapshot) =>
+    [
+      queue.source,
+      queue.shuffle,
+      queue.repeat,
+      queue.current && `${queue.current.list}:${queue.current.index}`,
+      queue.items.map((item) => item.videoId).join(","),
+      queue.autoplay.map((item) => item.videoId).join(",")
+    ].join("|")
+
   const pushPlayerState = async () => {
     try {
       const state: PlayerApiState | null = await webFrame.executeJavaScript(
@@ -160,12 +158,34 @@ document.addEventListener("DOMContentLoaded", () => {
       )
       if (!state) return
 
-      const snapshot: PlayerSnapshot = { ...state, ...readDomTrackExtras() }
+      const queue: QueueSnapshot | null = await webFrame.executeJavaScript(
+        "window.__yumuBridge?.getQueue() ?? null"
+      )
+      const playing = queue?.current ? queue[queue.current.list][queue.current.index] : undefined
+
+      const extras = readDomTrackExtras()
+      const snapshot: PlayerSnapshot = {
+        ...state,
+        ...extras,
+        ...(playing && {
+          artists: playing.artists.length ? playing.artists : extras.artists,
+          album: playing.album || extras.album,
+          albumId: playing.albumId ?? extras.albumId
+        })
+      }
       ipcRenderer.sendToHost(YTM_PLAYER_STATE, snapshot)
+
+      if (queue) {
+        const key = queueKey(queue)
+        if (key !== lastQueueKey) {
+          lastQueueKey = key
+          ipcRenderer.sendToHost(YTM_QUEUE, queue)
+        }
+      }
 
       if (state.videoId !== lastVideoId) {
         lastVideoId = state.videoId
-        // The DOM metadata trails the player API at a track change; send again once it settles.
+        // The DOM trails the player API at a track change, so send again once it settles.
         setTimeout(pushPlayerState, 1000)
       }
     } catch (error) {
@@ -173,8 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Media events don't bubble, but they can be captured on the document, which also covers
-  // video elements YouTube Music creates later.
+  // Media events don't bubble; capturing them on the document also covers videos created later.
   const PLAYER_EVENTS = [
     "play",
     "playing",
@@ -196,7 +215,6 @@ document.addEventListener("DOMContentLoaded", () => {
     )
   }
 
-  // Position only needs a steady tick while something is playing.
   setInterval(() => {
     if (document.querySelector("video")?.paused === false) pushPlayerState()
   }, 1000)
@@ -204,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ipcRenderer.on(YTM_COMMAND, async (_, command: YtmCommand) => {
     try {
       switch (command.type) {
-        // YouTube Music's own queue is driven by its buttons, not `movie_player.nextVideo()`.
+        // `movie_player.nextVideo()` bypasses the queue, so next and previous click the buttons.
         case "next":
           nextTrack()
           break
