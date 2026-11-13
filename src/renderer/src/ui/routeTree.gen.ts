@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HomeIndexRouteImport } from './routes/home/index'
-import { Route as SearchIndexRouteImport } from './routes/search/index'
 import { Route as ArtistBrowseIdIndexRouteImport } from './routes/artist/$browseId/index'
 import { Route as ArtistBrowseIdAllRouteImport } from './routes/artist/$browseId/all'
 import { Route as BrowseBrowseIdIndexRouteImport } from './routes/browse/$browseId/index'
@@ -24,11 +23,6 @@ const IndexRoute = IndexRouteImport.update({
 const HomeIndexRoute = HomeIndexRouteImport.update({
   id: '/home/',
   path: '/home/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchIndexRoute = SearchIndexRouteImport.update({
-  id: '/search/',
-  path: '/search/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArtistBrowseIdIndexRoute = ArtistBrowseIdIndexRouteImport.update({
@@ -50,7 +44,6 @@ const BrowseBrowseIdIndexRoute = BrowseBrowseIdIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/home/': typeof HomeIndexRoute
-  '/search/': typeof SearchIndexRoute
   '/artist/$browseId/all': typeof ArtistBrowseIdAllRoute
   '/artist/$browseId/': typeof ArtistBrowseIdIndexRoute
   '/browse/$browseId/': typeof BrowseBrowseIdIndexRoute
@@ -58,7 +51,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/home': typeof HomeIndexRoute
-  '/search': typeof SearchIndexRoute
   '/artist/$browseId/all': typeof ArtistBrowseIdAllRoute
   '/artist/$browseId': typeof ArtistBrowseIdIndexRoute
   '/browse/$browseId': typeof BrowseBrowseIdIndexRoute
@@ -67,7 +59,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/home/': typeof HomeIndexRoute
-  '/search/': typeof SearchIndexRoute
   '/artist/$browseId/all': typeof ArtistBrowseIdAllRoute
   '/artist/$browseId/': typeof ArtistBrowseIdIndexRoute
   '/browse/$browseId/': typeof BrowseBrowseIdIndexRoute
@@ -77,7 +68,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/home/'
-    | '/search/'
     | '/artist/$browseId/all'
     | '/artist/$browseId/'
     | '/browse/$browseId/'
@@ -85,7 +75,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/home'
-    | '/search'
     | '/artist/$browseId/all'
     | '/artist/$browseId'
     | '/browse/$browseId'
@@ -93,7 +82,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/home/'
-    | '/search/'
     | '/artist/$browseId/all'
     | '/artist/$browseId/'
     | '/browse/$browseId/'
@@ -102,7 +90,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HomeIndexRoute: typeof HomeIndexRoute
-  SearchIndexRoute: typeof SearchIndexRoute
   ArtistBrowseIdAllRoute: typeof ArtistBrowseIdAllRoute
   ArtistBrowseIdIndexRoute: typeof ArtistBrowseIdIndexRoute
   BrowseBrowseIdIndexRoute: typeof BrowseBrowseIdIndexRoute
@@ -122,13 +109,6 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home/'
       preLoaderRoute: typeof HomeIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search/': {
-      id: '/search/'
-      path: '/search'
-      fullPath: '/search/'
-      preLoaderRoute: typeof SearchIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/artist/$browseId/': {
@@ -158,7 +138,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HomeIndexRoute: HomeIndexRoute,
-  SearchIndexRoute: SearchIndexRoute,
   ArtistBrowseIdAllRoute: ArtistBrowseIdAllRoute,
   ArtistBrowseIdIndexRoute: ArtistBrowseIdIndexRoute,
   BrowseBrowseIdIndexRoute: BrowseBrowseIdIndexRoute,

@@ -1,20 +1,20 @@
+import { useSearchCommand } from "@renderer/components/features/search/use-search-command"
 import { Button } from "@renderer/components/ui/button"
 import { Link } from "@tanstack/react-router"
 import { HomeIcon, SearchIcon, type LucideIcon } from "lucide-react"
 
 type NavItem = {
-  to: "/home" | "/search"
+  to: "/home"
   label: string
   icon: LucideIcon
 }
 
 // Add entries here as routes land (home, library, ...).
-const NAV_ITEMS: NavItem[] = [
-  { to: "/home", label: "Home", icon: HomeIcon },
-  { to: "/search", label: "Search", icon: SearchIcon }
-]
+const NAV_ITEMS: NavItem[] = [{ to: "/home", label: "Home", icon: HomeIcon }]
 
 export default function Sidebar() {
+  const openSearch = useSearchCommand((s) => s.setOpen)
+
   return (
     <aside className="bg-primary fixed top-10 bottom-0 left-0 z-99 w-13 shrink-0 grow-0 p-2">
       <nav className="flex flex-col gap-1">
@@ -31,6 +31,11 @@ export default function Sidebar() {
             }
           />
         ))}
+        {/* Search is a palette, not a page, so it's a button rather than a link. */}
+        <Button size="icon" variant="ghost" onClick={() => openSearch(true)}>
+          <SearchIcon className="size-4" />
+          <span className="sr-only">Search</span>
+        </Button>
       </nav>
     </aside>
   )
