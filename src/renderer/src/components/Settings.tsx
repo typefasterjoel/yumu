@@ -14,6 +14,7 @@ import { Switch } from "@renderer/components/ui/switch"
 import { HeadphonesIcon, Settings2Icon, SwatchBookIcon } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { LiaDiscord } from "react-icons/lia"
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
 function Settings() {
   const [showOverlay, setShowOverlay] = useState(false)
@@ -99,9 +100,16 @@ function Settings() {
       <Popover onOpenChange={() => setShowOverlay(!showOverlay)}>
         <PopoverTrigger
           render={
-            <Button variant="ghost" size="icon-sm">
-              <Settings2Icon className="size-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button variant="ghost" size="icon-sm">
+                    <Settings2Icon className="size-4" />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom">Settings</TooltipContent>
+            </Tooltip>
           }
         />
         <PopoverContent className="-mt-2 w-80" align="end" side="bottom">
