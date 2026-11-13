@@ -125,7 +125,6 @@
     @apply bg-background text-foreground;
   }
 
-  /* Scrollbars are invisible until the pointer is over something that scrolls, then fade in. */
   * {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
