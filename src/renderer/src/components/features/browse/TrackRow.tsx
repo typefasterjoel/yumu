@@ -14,7 +14,7 @@ const baseTitle = (title: string) =>
     .trim()
     .toLowerCase()
 
-function TrackRow({ track, position }: { track: BrowseTrack; position: number }) {
+function TrackRow({ track, position }: { track: BrowseTrack; position?: number }) {
   const isCurrent = usePlayerStore(
     (s) =>
       track.playlistId !== null &&
@@ -52,18 +52,20 @@ function TrackRow({ track, position }: { track: BrowseTrack; position: number })
       />
       {track.thumbnail ? (
         <div className="pointer-events-none relative">
-          <span className="text-accent-foreground bg-accent/95 absolute bottom-0 left-0 inline-flex size-5 shrink-0 items-center justify-center rounded-tr p-3 text-right text-xs font-semibold">
-            {position}
-          </span>
+          {position !== undefined && (
+            <span className="text-accent-foreground bg-accent/95 absolute bottom-0 left-0 inline-flex size-5 shrink-0 items-center justify-center rounded-tr p-3 text-right text-xs font-semibold">
+              {position}
+            </span>
+          )}
           <RemoteImage src={track.thumbnail} alt="" className="size-14 rounded object-cover" />
         </div>
-      ) : (
+      ) : position !== undefined ? (
         // Album rows have no artwork, so the number sits where it would be instead of covering
         // the title.
         <span className="text-muted-foreground pointer-events-none relative w-8 shrink-0 text-center text-sm font-semibold tabular-nums">
           {position}
         </span>
-      )}
+      ) : null}
       <div className="pointer-events-none min-w-0 flex-1">
         <p className={cn("truncate text-sm font-medium", isCurrent && "text-primary")}>
           {track.title}
