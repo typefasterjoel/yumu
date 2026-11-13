@@ -17,7 +17,6 @@ import { LiaDiscord } from "react-icons/lia"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 
 function Settings() {
-  const [showOverlay, setShowOverlay] = useState(false)
   const [isDiscordEnabled, setIsDiscordEnabled] = useState(() => {
     return localStorage.getItem(LOCAL_DISCORD_SETTING) === "true"
   })
@@ -94,101 +93,93 @@ function Settings() {
   }
 
   return (
-    <>
-      {showOverlay && <div className="fixed inset-0 z-50 bg-black/30" aria-hidden="true" />}
-
-      <Popover onOpenChange={() => setShowOverlay(!showOverlay)}>
-        <PopoverTrigger
+    <Popover>
+      <Tooltip>
+        <TooltipTrigger
           render={
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button variant="ghost" size="icon-sm">
-                    <Settings2Icon className="size-4" />
-                  </Button>
-                }
-              />
-              <TooltipContent side="bottom">Settings</TooltipContent>
-            </Tooltip>
+            <PopoverTrigger
+              render={
+                <Button variant="ghost" size="icon-sm">
+                  <Settings2Icon className="size-4" />
+                </Button>
+              }
+            />
           }
         />
-        <PopoverContent className="-mt-2 w-80" align="end" side="bottom">
-          <div className="flex flex-col gap-5 divide-y">
-            <div className="flex flex-col pb-4">
-              <h2 className="text-lg font-semibold">Settings</h2>
-              <h3 className="text-muted-foreground text-sm">Configure Yumu Settings</h3>
+        <TooltipContent side="bottom">Settings</TooltipContent>
+      </Tooltip>
+      <PopoverContent className="-mt-2 w-80" align="end" side="bottom">
+        <div className="flex flex-col gap-5 divide-y">
+          <div className="flex flex-col pb-4">
+            <h2 className="text-lg font-semibold">Settings</h2>
+            <h3 className="text-muted-foreground text-sm">Configure Yumu Settings</h3>
+          </div>
+          <div className="flex flex-col gap-2 pb-4">
+            <div className="flex flex-col">
+              <h4 className="flex items-center gap-2 font-medium">
+                <HeadphonesIcon className="size-4" />
+                Audio Output
+              </h4>
+              <h5 className="text-muted-foreground text-sm">
+                Select the audio output device for Yumu
+              </h5>
             </div>
-            <div className="flex flex-col gap-2 pb-4">
-              <div className="flex flex-col">
-                <h4 className="flex items-center gap-2 font-medium">
-                  <HeadphonesIcon className="size-4" />
-                  Audio Output
-                </h4>
-                <h5 className="text-muted-foreground text-sm">
-                  Select the audio output device for Yumu
-                </h5>
-              </div>
-              <Select
-                itemToStringLabel={(item) =>
-                  audioDevices.find((d) => d.deviceId === item)?.label ?? item
-                }
-                value={selectedAudioDevice}
-                onValueChange={handleAudioDeviceChange}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Audio Output" />
-                </SelectTrigger>
-                <SelectContent side="top" align="start" className="min-w-fit">
-                  {audioDevices.map((device) => (
-                    <SelectItem key={device.deviceId} value={device.deviceId}>
-                      {device.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Select
+              itemToStringLabel={(item) =>
+                audioDevices.find((d) => d.deviceId === item)?.label ?? item
+              }
+              value={selectedAudioDevice}
+              onValueChange={handleAudioDeviceChange}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Audio Output" />
+              </SelectTrigger>
+              <SelectContent side="top" align="start" className="min-w-fit">
+                {audioDevices.map((device) => (
+                  <SelectItem key={device.deviceId} value={device.deviceId}>
+                    {device.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2 pb-4">
+            <div className="flex flex-col">
+              <h4 className="flex items-center gap-2 font-medium">
+                <LiaDiscord className="size-4" />
+                Discord
+              </h4>
+              <h5 className="text-muted-foreground text-sm">
+                Update Discord status with song information
+              </h5>
             </div>
-            <div className="flex flex-col gap-2 pb-4">
-              <div className="flex flex-col">
-                <h4 className="flex items-center gap-2 font-medium">
-                  <LiaDiscord className="size-4" />
-                  Discord
-                </h4>
-                <h5 className="text-muted-foreground text-sm">
-                  Update Discord status with song information
-                </h5>
-              </div>
-              <div className="mt-1 flex items-center gap-2">
-                <Switch
-                  id="discord-rich-presence"
-                  checked={isDiscordEnabled}
-                  onCheckedChange={handleToggleDiscord}
-                />
-                <Label htmlFor="discord-rich-presence">Enable Discord Rich Presence</Label>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-col">
-                <h4 className="flex items-center gap-2 font-medium">
-                  <SwatchBookIcon className="size-4" />
-                  Yumu UI
-                </h4>
-                <h5 className="text-muted-foreground text-sm">
-                  {`Use Yumu's custom UI instead of the default YouTube Music`}
-                </h5>
-              </div>
-              <div className="mt-1 flex items-center gap-2">
-                <Switch
-                  id="yumu-ui"
-                  checked={isYumuUIEnabled}
-                  onCheckedChange={setCustomUiEnabled}
-                />
-                <Label htmlFor="yumu-ui">Enable Yumu UI</Label>
-              </div>
+            <div className="mt-1 flex items-center gap-2">
+              <Switch
+                id="discord-rich-presence"
+                checked={isDiscordEnabled}
+                onCheckedChange={handleToggleDiscord}
+              />
+              <Label htmlFor="discord-rich-presence">Enable Discord Rich Presence</Label>
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-    </>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
+              <h4 className="flex items-center gap-2 font-medium">
+                <SwatchBookIcon className="size-4" />
+                Yumu UI
+              </h4>
+              <h5 className="text-muted-foreground text-sm">
+                {`Use Yumu's custom UI instead of the default YouTube Music`}
+              </h5>
+            </div>
+            <div className="mt-1 flex items-center gap-2">
+              <Switch id="yumu-ui" checked={isYumuUIEnabled} onCheckedChange={setCustomUiEnabled} />
+              <Label htmlFor="yumu-ui">Enable Yumu UI</Label>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
 export default Settings
