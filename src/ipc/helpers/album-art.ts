@@ -9,6 +9,25 @@ const ALLOWED_HOSTS = [
   "music.youtube.com"
 ]
 const MAX_CACHED = 300
+const MAX_CONCURRENT = 6
+
+let active = 0
+const waiting: (() => void)[] = []
+
+// A page of artwork asks for hundreds of images at once, which is what gets the host to answer 429.
+async function limited<T>(task: () => Promise<T>): Promise<T> {
+  if (active < MAX_CONCURRENT) active++
+  else await new Promise<void>((resolve) => waiting.push(resolve))
+
+  try {
+    return await task()
+  } finally {
+    // A waiting request takes over this slot.
+    const next = waiting.shift()
+    if (next) next()
+    else active--
+  }
+}
 
 // Keyed by URL. Holds the promise so a repeated request joins one already in flight.
 const cache = new Map<string, Promise<string | null>>()
@@ -48,8 +67,12 @@ export function albumArtListeners() {
     if (typeof url !== "string" || !isAllowed(url)) return null
 
     let result = cache.get(url)
-    if (!result) {
-      result = fetchAsDataUrl(url)
+    if (result) {
+      // Moves it to the end, so the entry dropped when the cache is full is the least recently used.
+      cache.delete(url)
+      cache.set(url, result)
+    } else {
+      result = limited(() => fetchAsDataUrl(url))
       cache.set(url, result)
       // Failures aren't kept, so a later attempt can try again.
       void result.then((value) => {
