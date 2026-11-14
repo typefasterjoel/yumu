@@ -1,5 +1,5 @@
+import InfiniteScrollTrigger from "@renderer/components/InfiniteScrollTrigger"
 import HomeSection from "@renderer/components/features/home/HomeSection"
-import { Button } from "@renderer/components/ui/button"
 import { useHome } from "@renderer/queries/home"
 import { createFileRoute } from "@tanstack/react-router"
 import { Disc3Icon } from "lucide-react"
@@ -27,16 +27,11 @@ function HomePage() {
               <HomeSection key={`${p}:${i}:${section.title}`} section={section} />
             ))
           )}
-          {hasNextPage && (
-            <Button
-              variant="ghost"
-              className="self-center"
-              disabled={isFetchingNextPage}
-              onClick={() => fetchNextPage()}
-            >
-              {isFetchingNextPage ? "Loading…" : "Load more"}
-            </Button>
-          )}
+          <InfiniteScrollTrigger
+            hasNextPage={hasNextPage}
+            isFetching={isFetchingNextPage}
+            onLoadMore={fetchNextPage}
+          />
         </div>
       )}
     </div>

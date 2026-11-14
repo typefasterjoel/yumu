@@ -1,3 +1,4 @@
+import InfiniteScrollTrigger from "@renderer/components/InfiniteScrollTrigger"
 import type { LibraryTab } from "@ipc/youtube/parse-library"
 import ArtistCard from "@renderer/components/features/artist/ArtistCard"
 import { Button } from "@renderer/components/ui/button"
@@ -53,16 +54,11 @@ function LibraryPage() {
                 <ArtistCard key={`${i}:${item.title}`} item={item} />
               ))}
           </ul>
-          {hasNextPage && (
-            <Button
-              variant="ghost"
-              className="self-center"
-              disabled={isFetchingNextPage}
-              onClick={() => fetchNextPage()}
-            >
-              {isFetchingNextPage ? "Loading…" : "Load more"}
-            </Button>
-          )}
+          <InfiniteScrollTrigger
+            hasNextPage={hasNextPage}
+            isFetching={isFetchingNextPage}
+            onLoadMore={fetchNextPage}
+          />
         </div>
       )}
     </div>
