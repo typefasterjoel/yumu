@@ -275,7 +275,7 @@ export function installYtmMainWorld(): void {
     endpoint: InnertubeEndpoint,
     body: Record<string, unknown>
   ): Promise<unknown> => {
-    if (!["search", "browse", "next"].includes(endpoint)) {
+    if (!["search", "browse"].includes(endpoint)) {
       throw new Error(`Unsupported Innertube endpoint: ${endpoint}`)
     }
 

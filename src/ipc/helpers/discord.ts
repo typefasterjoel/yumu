@@ -173,7 +173,3 @@ export function discordListeners() {
     return initialized
   })
 }
-
-export function getDiscordStatus() {
-  return initialized
-}

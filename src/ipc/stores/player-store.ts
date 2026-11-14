@@ -35,7 +35,6 @@ type PlayerActions = {
   applySnapshot: (snapshot: PlayerSnapshot) => void
   /** Shows a seek immediately instead of waiting for the webview to confirm it. */
   applyOptimisticSeek: (seconds: number) => void
-  reset: () => void
 }
 
 const initialState: PlayerState = {
@@ -119,7 +118,5 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
       positionUpdatedAt: now,
       pendingSeek: { seconds, expiresAt: now + SEEK_SETTLE_TIMEOUT_MS }
     })
-  },
-
-  reset: () => set(initialState)
+  }
 }))

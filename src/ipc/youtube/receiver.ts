@@ -21,10 +21,6 @@ export async function receiveYouTubeEvents(event: Electron.IpcMessageEvent) {
       break
     }
 
-    case "youtube:preload-ready": {
-      break
-    }
-
     case YTM_PLAYER_STATE: {
       usePlayerStore.getState().applySnapshot(args[0] as PlayerSnapshot)
       break

@@ -13,8 +13,6 @@ import {
 import { installYtmMainWorld } from "./ytm-main-world"
 
 document.addEventListener("DOMContentLoaded", () => {
-  ipcRenderer.sendToHost("youtube:preload-ready", { message: "YouTube preload script loaded" })
-
   let currentSinkId = ""
 
   const getAudioDevices = async () => {
