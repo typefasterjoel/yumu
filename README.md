@@ -8,6 +8,7 @@ This is an electron app wrapper for YouTube music that helps deal with some miss
 
 - **Audio Output Select** - This will allow you to select a different audio output for the program
 - **Discord Presence** - Display what you're currently listening to to your Discord
+- **Yumu UI (alpha)** - An optional interface of Yumu's own, built on top of YouTube Music: Home, Library, search, a queue panel and player controls. It's off by default and can be turned on in Settings. Some features are still missing, and switching it off returns you to the regular YouTube Music page.
 
 ## For Development
 
