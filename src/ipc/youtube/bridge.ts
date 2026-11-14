@@ -4,8 +4,20 @@
 export const YTM_COMMAND = "ytm:command"
 export const YTM_PLAYER_STATE = "ytm:player-state"
 export const YTM_QUEUE = "ytm:queue"
+export const YTM_HEALTH = "ytm:health"
 
 import type { TrackArtist } from "@ipc/youtube/parse-browse"
+
+export type HealthCheckId =
+  "bridge" | "player" | "navigation" | "config" | "queue" | "playerControls"
+
+export type HealthCheck = {
+  id: HealthCheckId
+  ok: boolean
+  critical: boolean
+}
+
+export type HealthReport = HealthCheck[]
 
 export type PlaybackStatus = "idle" | "playing" | "paused" | "buffering"
 
