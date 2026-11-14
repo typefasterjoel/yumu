@@ -45,7 +45,7 @@ function SeekBar() {
     <div className="peer-[player] flex items-center gap-2 text-sm tabular-nums">
       <Slider
         min={0}
-        max={duration || 0}
+        max={duration || 1}
         step={1}
         defaultValue={0}
         value={scrub ? [scrub] : [position]}
