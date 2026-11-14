@@ -48,19 +48,10 @@ function SeekBar() {
         max={duration || 1}
         step={1}
         defaultValue={0}
-        value={scrub ? [scrub] : [position]}
+        value={scrub !== null ? [scrub] : [position]}
         onValueChange={(value) => updateScrub(value as number)}
         className="absolute inset-x-0 top-0"
       />
-      {/*<input
-        type="range"
-        className="absolute inset-x-0 top-0 h-1 flex-1"
-        min={0}
-        max={duration || 1}
-        step={1}
-        value={scrub ?? position}
-        onChange={(e) => updateScrub(Number(e.target.value))}
-      />*/}
       <div className="inline-flex gap-1">
         <span className="">{formatTime(scrub ?? position)}</span>
         <span className="text-muted-foreground"> /</span>
