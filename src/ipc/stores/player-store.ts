@@ -26,6 +26,7 @@ type PlayerState = {
   positionUpdatedAt: number
   /** 0-100. */
   volume: number
+  liked: boolean
   /** A seek that was sent but hasn't shown up in a snapshot yet. */
   pendingSeek: PendingSeek | null
 }
@@ -45,6 +46,7 @@ const initialState: PlayerState = {
   position: 0,
   positionUpdatedAt: 0,
   volume: 100,
+  liked: false,
   pendingSeek: null
 }
 
@@ -68,7 +70,8 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
     albumArt,
     duration,
     position,
-    volume
+    volume,
+    liked
   }) =>
     set((state) => {
       const now = Date.now()
@@ -104,6 +107,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
         playlistId,
         duration,
         volume,
+        liked,
         ...(seekPending ? {} : { position, positionUpdatedAt: now, pendingSeek: null })
       }
     }),

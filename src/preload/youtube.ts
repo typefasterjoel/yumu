@@ -100,6 +100,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const SHUFFLE_SELECTOR = ".shuffle, ytmusic-miniplayer .ytmusicPlayerControlsShuffleButton button"
   const REPEAT_SELECTOR = ".repeat, ytmusic-miniplayer .ytmusicPlayerControlsRepeatButton button"
 
+  const LIKE_SELECTOR =
+    "ytmusic-miniplayer like-button-view-model button, ytmusic-player-bar ytmusic-like-button-renderer .like button"
+
+  const readLiked = () => {
+    const button = document.querySelector(LIKE_SELECTOR)
+    if (button) return button.getAttribute("aria-pressed") === "true"
+    return (
+      document
+        .querySelector("ytmusic-player-bar ytmusic-like-button-renderer")
+        ?.getAttribute("like-status") === "LIKE"
+    )
+  }
+
   const nextTrack = () => {
     clickPlayerButton(NEXT_SELECTOR)
   }
@@ -215,6 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const snapshot: PlayerSnapshot = {
         ...state,
         ...extras,
+        liked: readLiked(),
         ...(playing && {
           artists: playing.artists.length ? playing.artists : extras.artists,
           album: playing.album || extras.album,
@@ -282,6 +296,10 @@ document.addEventListener("DOMContentLoaded", () => {
           break
         case "repeat":
           clickPlayerButton(REPEAT_SELECTOR)
+          break
+        case "like":
+          clickPlayerButton(LIKE_SELECTOR)
+          setTimeout(pushPlayerState, 500)
           break
         default:
           await webFrame.executeJavaScript(

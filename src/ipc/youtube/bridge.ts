@@ -29,6 +29,7 @@ export type YtmCommand =
   | { type: "previous" }
   | { type: "shuffle" }
   | { type: "repeat" }
+  | { type: "like" }
   // Without `index`, next restarts the queue from its first track.
   | {
       type: "playVideo"
@@ -83,4 +84,5 @@ export type PlayerSnapshot = PlayerApiState & {
   album: string
   albumId: string | null
   albumArt: string
+  liked: boolean
 }
