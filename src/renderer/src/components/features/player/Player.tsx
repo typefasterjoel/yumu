@@ -7,6 +7,8 @@ import NowPlaying from "./NowPlaying"
 import PlaybackControls from "./PlaybackControls"
 import SeekBar from "./SeekBar"
 import VolumeControl from "./VolumeControl"
+import { ButtonGroup } from "@renderer/components/ui/button-group"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@renderer/components/ui/tooltip"
 
 function Player() {
   const [queueOpen, setQueueOpen] = useState(false)
@@ -19,18 +21,27 @@ function Player() {
         <NowPlaying />
         <SeekBar />
         <PlaybackControls />
-        <VolumeControl />
-        <Button
-          aria-label="Queue"
-          data-queue-toggle
-          aria-pressed={queueOpen}
-          size="icon"
-          variant="outline"
-          className="aria-pressed:bg-accent"
-          onClick={() => setQueueOpen((open) => !open)}
-        >
-          <ListMusicIcon />
-        </Button>
+        <ButtonGroup>
+          <VolumeControl />
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label="Queue"
+                  data-queue-toggle
+                  aria-pressed={queueOpen}
+                  size="icon"
+                  variant="outline"
+                  className="aria-pressed:bg-accent"
+                  onClick={() => setQueueOpen((open) => !open)}
+                >
+                  <ListMusicIcon />
+                </Button>
+              }
+            />
+            <TooltipContent>Song Queue</TooltipContent>
+          </Tooltip>
+        </ButtonGroup>
       </div>
     </section>
   )
