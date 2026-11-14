@@ -8,6 +8,8 @@ function ArtistCard({ item }: { item: ArtistItem }) {
   const navigate = useNavigate()
 
   const open = () => {
+    if (item.kind === "unknown") return
+
     if (item.kind === "video") {
       sendYtmCommand({
         type: "playVideo",
@@ -21,12 +23,16 @@ function ArtistCard({ item }: { item: ArtistItem }) {
     }
   }
 
+  const Wrapper = item.kind === "unknown" ? "div" : "button"
+
   return (
     <li className="w-40 shrink-0">
-      <button
-        type="button"
-        onClick={open}
-        className="hover:bg-muted flex w-full flex-col gap-2 rounded p-2 text-left transition-all"
+      <Wrapper
+        {...(item.kind === "unknown" ? {} : { type: "button" as const, onClick: open })}
+        className={cn(
+          "flex w-full flex-col gap-2 rounded p-2 text-left transition-all",
+          item.kind === "unknown" ? "opacity-70" : "hover:bg-muted"
+        )}
       >
         {item.thumbnail &&
           (item.kind === "video" ? (
@@ -48,7 +54,7 @@ function ArtistCard({ item }: { item: ArtistItem }) {
           <p className="truncate text-sm font-medium">{item.title}</p>
           <p className="text-muted-foreground truncate text-xs">{item.subtitle}</p>
         </div>
-      </button>
+      </Wrapper>
     </li>
   )
 }
