@@ -27,6 +27,8 @@ export type YtmCommand =
   | { type: "toggle" }
   | { type: "next" }
   | { type: "previous" }
+  | { type: "shuffle" }
+  | { type: "repeat" }
   // Without `index`, next restarts the queue from its first track.
   | {
       type: "playVideo"

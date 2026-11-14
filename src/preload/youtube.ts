@@ -97,6 +97,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!clicked) webFrame.executeJavaScript(`window.__yumuBridge?.command({ type: "toggle" })`)
   }
 
+  const SHUFFLE_SELECTOR = ".shuffle, ytmusic-miniplayer .ytmusicPlayerControlsShuffleButton button"
+  const REPEAT_SELECTOR = ".repeat, ytmusic-miniplayer .ytmusicPlayerControlsRepeatButton button"
+
   const nextTrack = () => {
     clickPlayerButton(NEXT_SELECTOR)
   }
@@ -273,6 +276,12 @@ document.addEventListener("DOMContentLoaded", () => {
           break
         case "previous":
           previousTrack()
+          break
+        case "shuffle":
+          clickPlayerButton(SHUFFLE_SELECTOR)
+          break
+        case "repeat":
+          clickPlayerButton(REPEAT_SELECTOR)
           break
         default:
           await webFrame.executeJavaScript(
