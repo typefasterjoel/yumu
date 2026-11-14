@@ -7,6 +7,13 @@ import {
 } from "@ipc/youtube/parse-artist"
 import { parseHomeContinuation, parseHomeResponse, type HomePage } from "@ipc/youtube/parse-home"
 import {
+  LIBRARY_BROWSE_IDS,
+  parseLibraryContinuation,
+  parseLibraryResponse,
+  type LibraryPage,
+  type LibraryTab
+} from "@ipc/youtube/parse-library"
+import {
   parseBrowseContinuation,
   parseBrowseResponse,
   type BrowseContinuation,
@@ -42,6 +49,17 @@ export async function browseContinuation(
     await requestInnertube("browse", { continuation: token }),
     startIndex
   )
+}
+
+export async function browseLibrary(tab: LibraryTab, token?: string): Promise<LibraryPage> {
+  if (token) {
+    return parseLibraryContinuation(await requestInnertube("browse", { continuation: token }))
+  }
+  const page = parseLibraryResponse(
+    await requestInnertube("browse", { browseId: LIBRARY_BROWSE_IDS[tab] })
+  )
+  if (!page) throw new Error("Your library couldn't be read; YouTube Music may have changed it.")
+  return page
 }
 
 export async function browseHome(token?: string): Promise<HomePage> {
