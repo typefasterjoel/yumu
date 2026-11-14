@@ -2,15 +2,18 @@ import { useSearchCommand } from "@renderer/components/features/search/use-searc
 import { Button } from "@renderer/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@renderer/components/ui/tooltip"
 import { Link } from "@tanstack/react-router"
-import { HomeIcon, SearchIcon, type LucideIcon } from "lucide-react"
+import { HomeIcon, LibraryIcon, SearchIcon, type LucideIcon } from "lucide-react"
 
 type NavItem = {
-  to: "/home"
+  to: "/home" | "/library"
   label: string
   icon: LucideIcon
 }
 
-const NAV_ITEMS: NavItem[] = [{ to: "/home", label: "Home", icon: HomeIcon }]
+const NAV_ITEMS: NavItem[] = [
+  { to: "/home", label: "Home", icon: HomeIcon },
+  { to: "/library", label: "Library", icon: LibraryIcon }
+]
 
 export default function Sidebar() {
   const openSearch = useSearchCommand((s) => s.setOpen)
