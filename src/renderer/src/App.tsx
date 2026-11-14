@@ -1,6 +1,7 @@
 import { useUiStore } from "@ipc/stores/ui-store"
 import { startDiscordSync } from "@ipc/youtube/discord-sync"
 import ApplicationToolbar from "@renderer/components/ApplicationToolbar"
+import HealthNotice from "@renderer/components/HealthNotice"
 import PermissionsDialog from "@renderer/components/PermissionsDialog"
 import YouTubeView from "@renderer/components/YouTubeView"
 import { router } from "@renderer/ui/router"
@@ -20,6 +21,7 @@ function App(): React.JSX.Element {
         <div className="bg-primary relative flex h-full w-full items-center justify-center">
           {customUiEnabled && <RouterProvider router={router} />}
           <YouTubeView />
+          {customUiEnabled && <HealthNotice />}
           <PermissionsDialog />
         </div>
       </TooltipProvider>

@@ -1,8 +1,10 @@
 import { ipcRenderer, webFrame } from "electron"
 import {
   YTM_COMMAND,
+  YTM_HEALTH,
   YTM_PLAYER_STATE,
   YTM_QUEUE,
+  type HealthReport,
   type PlayerApiState,
   type PlayerSnapshot,
   type QueueSnapshot,
@@ -83,23 +85,24 @@ document.addEventListener("DOMContentLoaded", () => {
     return button !== null
   }
 
+  const PLAY_PAUSE_SELECTOR =
+    "#play-pause-button, ytmusic-miniplayer .ytmusicPlayerControlsPlayPauseButton button"
+  const NEXT_SELECTOR =
+    '.next-button, [data-id="next-button"], ytmusic-miniplayer .ytmusicPlayerControlsNextButton button'
+  const PREVIOUS_SELECTOR =
+    '.previous-button, [data-id="previous-button"], ytmusic-miniplayer .ytmusicPlayerControlsPreviousButton button'
+
   const playPause = () => {
-    const clicked = clickPlayerButton(
-      "#play-pause-button, ytmusic-miniplayer .ytmusicPlayerControlsPlayPauseButton button"
-    )
+    const clicked = clickPlayerButton(PLAY_PAUSE_SELECTOR)
     if (!clicked) webFrame.executeJavaScript(`window.__yumuBridge?.command({ type: "toggle" })`)
   }
 
   const nextTrack = () => {
-    clickPlayerButton(
-      '.next-button, [data-id="next-button"], ytmusic-miniplayer .ytmusicPlayerControlsNextButton button'
-    )
+    clickPlayerButton(NEXT_SELECTOR)
   }
 
   const previousTrack = () => {
-    clickPlayerButton(
-      '.previous-button, [data-id="previous-button"], ytmusic-miniplayer .ytmusicPlayerControlsPreviousButton button'
-    )
+    clickPlayerButton(PREVIOUS_SELECTOR)
   }
 
   ipcRenderer.on("media:play-pause", playPause)
@@ -107,6 +110,48 @@ document.addEventListener("DOMContentLoaded", () => {
   ipcRenderer.on("media:previous-track", previousTrack)
 
   webFrame.executeJavaScript(`(${installYtmMainWorld.toString()})()`)
+
+  // The page builds itself after DOMContentLoaded, so a failing check is only reported once it has
+  // had time to appear; after that, changes are reported as they happen.
+  const HEALTH_WARMUP_MS = 30_000
+  const HEALTH_WARMUP_INTERVAL_MS = 2_000
+  const HEALTH_INTERVAL_MS = 60_000
+  const healthStartedAt = Date.now()
+  let lastHealthKey = ""
+
+  const checkHealth = async () => {
+    let report: HealthReport
+    try {
+      const page: HealthReport | null = await webFrame.executeJavaScript(
+        "window.__yumuBridge?.getHealth() ?? null"
+      )
+      report = page ?? [{ id: "bridge", critical: true, ok: false }]
+    } catch (error) {
+      console.error("Health check failed:", error)
+      report = [{ id: "bridge", critical: true, ok: false }]
+    }
+
+    report.push({
+      id: "playerControls",
+      critical: false,
+      ok:
+        document.querySelector("ytmusic-miniplayer, ytmusic-player-bar") === null ||
+        [PLAY_PAUSE_SELECTOR, NEXT_SELECTOR, PREVIOUS_SELECTOR].every(
+          (selector) => document.querySelector(selector) !== null
+        )
+    })
+
+    const healthy = report.every((check) => check.ok)
+    const warmedUp = Date.now() - healthStartedAt >= HEALTH_WARMUP_MS
+    const key = report.map((check) => `${check.id}:${check.ok}`).join(",")
+    if ((healthy || warmedUp) && key !== lastHealthKey) {
+      lastHealthKey = key
+      ipcRenderer.sendToHost(YTM_HEALTH, report)
+    }
+
+    setTimeout(checkHealth, warmedUp ? HEALTH_INTERVAL_MS : HEALTH_WARMUP_INTERVAL_MS)
+  }
+  checkHealth()
 
   // Duration comes from the progress bar: it is set as soon as the song loads, unlike `getDuration()`.
   const readDomTrackExtras = () => {

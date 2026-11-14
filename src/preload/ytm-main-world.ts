@@ -1,4 +1,5 @@
 import type {
+  HealthReport,
   InnertubeEndpoint,
   PlayerApiState,
   QueueItem,
@@ -27,6 +28,7 @@ export function installYtmMainWorld(): void {
   type Bridge = {
     getState: () => PlayerApiState | null
     getQueue: () => QueueSnapshot | null
+    getHealth: () => HealthReport
     command: (command: YtmCommand) => void
     request: (endpoint: InnertubeEndpoint, body: Record<string, unknown>) => Promise<unknown>
   }
@@ -304,5 +306,39 @@ export function installYtmMainWorld(): void {
     return response.json()
   }
 
-  host.__yumuBridge = { getState, getQueue, command, request }
+  const getHealth = (): HealthReport => {
+    const player = getPlayer()
+    const app = document.querySelector("ytmusic-app") as
+      (HTMLElement & { handleNavigationEndpoint?: unknown }) | null
+    const ytcfg = (window as unknown as { ytcfg?: { get?: (key: string) => unknown } }).ytcfg
+
+    return [
+      {
+        id: "player",
+        critical: true,
+        ok:
+          typeof player?.getPlayerState === "function" &&
+          typeof player.getVideoData === "function" &&
+          typeof player.seekTo === "function" &&
+          typeof player.setVolume === "function"
+      },
+      {
+        id: "navigation",
+        critical: true,
+        ok: typeof app?.handleNavigationEndpoint === "function"
+      },
+      {
+        id: "config",
+        critical: true,
+        ok: Boolean(ytcfg?.get?.("INNERTUBE_CONTEXT") && ytcfg.get?.("INNERTUBE_API_KEY"))
+      },
+      {
+        id: "queue",
+        critical: false,
+        ok: document.querySelector("ytmusic-player-queue") === null || getQueueStore() !== null
+      }
+    ]
+  }
+
+  host.__yumuBridge = { getState, getQueue, getHealth, command, request }
 }
