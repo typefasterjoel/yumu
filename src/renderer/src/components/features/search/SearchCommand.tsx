@@ -64,7 +64,7 @@ function SearchCommand() {
     const shown = input.trim() ? data : undefined
     const topResult = shown?.topResult ?? null
 
-    const words = normalize(input).split(/s+/).filter(Boolean)
+    const words = normalize(input).split(/\s+/).filter(Boolean)
     const matches = words.length
       ? (library ?? []).filter((item) => {
           const text = normalize(`${item.title} ${item.subtitle}`)
