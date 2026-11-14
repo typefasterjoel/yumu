@@ -1,6 +1,7 @@
 import { requestInnertube } from "@ipc/youtube/commands"
 import {
   parseArtistGridResponse,
+  type ArtistItem,
   parseArtistResponse,
   type ArtistGrid,
   type ArtistPage
@@ -60,6 +61,18 @@ export async function browseLibrary(tab: LibraryTab, token?: string): Promise<Li
   )
   if (!page) throw new Error("Your library couldn't be read; YouTube Music may have changed it.")
   return page
+}
+
+const MAX_LIBRARY_PAGES = 20
+
+export async function browseWholeLibrary(tab: LibraryTab): Promise<ArtistItem[]> {
+  const items: ArtistItem[] = []
+  let page = await browseLibrary(tab)
+  for (let i = 0; ; i++) {
+    items.push(...page.items)
+    if (!page.continuation || i >= MAX_LIBRARY_PAGES) return items
+    page = await browseLibrary(tab, page.continuation)
+  }
 }
 
 export async function browseHome(token?: string): Promise<HomePage> {
