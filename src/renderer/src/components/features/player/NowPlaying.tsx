@@ -18,15 +18,11 @@ const DISC_OFFSCREEN = "250%"
  */
 function useEasedSpin(spinning: boolean) {
   const ref = useRef<HTMLDivElement>(null)
-  const spinningRef = useRef(spinning)
+  const angle = useRef(0)
+  const velocity = useRef(0)
 
+  // The loop stops once the disc has come to rest and starts again when `spinning` turns on.
   useEffect(() => {
-    spinningRef.current = spinning
-  }, [spinning])
-
-  useEffect(() => {
-    let angle = 0
-    let velocity = 0
     let last = performance.now()
     let frame = requestAnimationFrame(tick)
 
@@ -34,19 +30,20 @@ function useEasedSpin(spinning: boolean) {
       const dt = Math.min((now - last) / 1000, 0.1)
       last = now
 
-      const target = spinningRef.current ? SPIN_SPEED : 0
+      const target = spinning ? SPIN_SPEED : 0
       // Exponential approach, independent of frame rate.
-      velocity += (target - velocity) * (1 - Math.exp(-dt / SPIN_EASE_TIME_CONSTANT))
-      if (target === 0 && velocity < 0.5) velocity = 0
+      velocity.current +=
+        (target - velocity.current) * (1 - Math.exp(-dt / SPIN_EASE_TIME_CONSTANT))
+      if (target === 0 && velocity.current < 0.5) velocity.current = 0
 
-      angle = (angle + velocity * dt) % 360
-      if (ref.current) ref.current.style.rotate = `${angle}deg`
+      angle.current = (angle.current + velocity.current * dt) % 360
+      if (ref.current) ref.current.style.rotate = `${angle.current}deg`
 
-      frame = requestAnimationFrame(tick)
+      if (spinning || velocity.current > 0) frame = requestAnimationFrame(tick)
     }
 
     return () => cancelAnimationFrame(frame)
-  }, [])
+  }, [spinning])
 
   return ref
 }
