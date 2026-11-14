@@ -1,5 +1,6 @@
 import { LOCAL_AUDIO_DEVICE_KEY, LOCAL_DISCORD_SETTING, type AudioDevice } from "@ipc/types"
 import { useUiStore } from "@ipc/stores/ui-store"
+import { Badge } from "@renderer/components/ui/badge"
 import { Button } from "@renderer/components/ui/button"
 import { Label } from "@renderer/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@renderer/components/ui/popover"
@@ -167,9 +168,10 @@ function Settings() {
               <h4 className="flex items-center gap-2 font-medium">
                 <SwatchBookIcon className="size-4" />
                 Yumu UI
+                <Badge variant="secondary">Alpha</Badge>
               </h4>
               <h5 className="text-muted-foreground text-sm">
-                {`Use Yumu's custom UI instead of the default YouTube Music`}
+                {`Try Yumu's own interface in place of the default YouTube Music. Some features are still missing; switch it off any time to go back.`}
               </h5>
             </div>
             <div className="mt-1 flex items-center gap-2">
