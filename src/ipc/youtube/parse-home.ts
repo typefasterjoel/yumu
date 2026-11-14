@@ -1,4 +1,4 @@
-import { parseCard, type ArtistItem, type ArtistSection } from "@ipc/youtube/parse-artist"
+import { parseCarouselEntry, type ArtistItem, type ArtistSection } from "@ipc/youtube/parse-artist"
 import { parseTrack, type BrowseTrack } from "@ipc/youtube/parse-browse"
 import { at, list, str, type Json } from "@ipc/youtube/parse-utils"
 
@@ -45,7 +45,8 @@ function parseSections(rows: Json[]): HomeSection[] {
       ""
 
     const items = entries
-      .map((entry) => parseCard(at(entry, "musicTwoRowItemRenderer")))
+      .filter((entry) => !at(entry, "musicResponsiveListItemRenderer"))
+      .map(parseCarouselEntry)
       .filter((item): item is ArtistItem => item !== null)
     if (items.length) sections.push({ kind: "cards", title, items, seeAll: null })
 
@@ -86,6 +87,9 @@ export function parseHomeResponse(response: Json): HomePage | null {
 
 export function parseHomeContinuation(response: Json): HomePage {
   const sectionList = at(response, "continuationContents", "sectionListContinuation")
+  if (!sectionList) {
+    console.warn("Home continuation had no recognizable section list; its shape may have changed.")
+  }
   return {
     sections: parseSections(list(at(sectionList, "contents"))),
     continuation: nextToken(sectionList)

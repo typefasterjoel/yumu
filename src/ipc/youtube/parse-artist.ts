@@ -27,6 +27,8 @@ export type ArtistItem =
     })
   | (ItemBase & { kind: "artist"; browseId: string })
   | (ItemBase & { kind: "video"; videoId: string; musicVideoType?: string })
+  /** Something we can't open (a podcast, a new card type); shown so it isn't silently missing. */
+  | (ItemBase & { kind: "unknown" })
 
 /** Where a section's "See all" goes. Only the targets we can show are kept. */
 export type SeeAll =
@@ -80,8 +82,10 @@ const parseHeader = (header: Json): ArtistHeader => ({
   )
 })
 
-// Cards are classified by where they link, never by the section's (translated) title. Podcasts and
-// episodes aren't handled, so they return null and their sections come out empty.
+const unknownCard = (base: ItemBase): ArtistItem | null =>
+  base.title ? { ...base, kind: "unknown" } : null
+
+// Cards are classified by where they link, never by the section's (translated) title.
 export const parseCard = (card: Json): ArtistItem | null => {
   const base: ItemBase = {
     title: runTexts(at(card, "title", "runs")).join(""),
@@ -119,7 +123,7 @@ export const parseCard = (card: Json): ArtistItem | null => {
       "pageType"
     )
   )
-  if (!browseId) return null
+  if (!browseId) return unknownCard(base)
 
   if (pageType === "MUSIC_PAGE_TYPE_ARTIST") return { ...base, kind: "artist", browseId }
 
@@ -129,7 +133,7 @@ export const parseCard = (card: Json): ArtistItem | null => {
       : pageType === "MUSIC_PAGE_TYPE_PLAYLIST"
         ? "playlist"
         : null
-  if (!kind) return null
+  if (!kind) return unknownCard(base)
 
   return {
     ...base,
@@ -147,6 +151,35 @@ export const parseCard = (card: Json): ArtistItem | null => {
       )
     )
   }
+}
+
+// Entries other than `musicTwoRowItemRenderer` are a one-key wrapper that mostly shares this layout.
+const parseOtherCard = (entry: Json): ArtistItem | null => {
+  const renderer =
+    entry && typeof entry === "object" ? Object.values(entry as object)[0] : undefined
+  const column = (position: number) =>
+    at(
+      renderer,
+      "flexColumns",
+      position,
+      "musicResponsiveListItemFlexColumnRenderer",
+      "text",
+      "runs"
+    )
+
+  return unknownCard({
+    title: runTexts(at(renderer, "title", "runs") ?? column(0)).join(""),
+    subtitle: runTexts(at(renderer, "subtitle", "runs") ?? column(1)).join(""),
+    thumbnail: thumbnailFrom(
+      at(renderer, "thumbnailRenderer", "musicThumbnailRenderer", "thumbnail", "thumbnails") ??
+        at(renderer, "thumbnail", "musicThumbnailRenderer", "thumbnail", "thumbnails")
+    )
+  })
+}
+
+export const parseCarouselEntry = (entry: Json): ArtistItem | null => {
+  const card = at(entry, "musicTwoRowItemRenderer")
+  return card ? parseCard(card) : parseOtherCard(entry)
 }
 
 // Other "See all" links (live performances, playlists) point back at the artist page itself with
@@ -219,7 +252,7 @@ export function parseArtistResponse(response: Json): ArtistPage | null {
     const carousel = at(section, "musicCarouselShelfRenderer")
     if (!carousel) continue
     const items = list(at(carousel, "contents"))
-      .map((entry) => parseCard(at(entry, "musicTwoRowItemRenderer")))
+      .map(parseCarouselEntry)
       .filter((item): item is ArtistItem => item !== null)
     if (!items.length) continue
 
@@ -263,7 +296,7 @@ export function parseArtistGridResponse(response: Json): ArtistGrid | null {
 
   return {
     items: list(at(grid, "items"))
-      .map((entry) => parseCard(at(entry, "musicTwoRowItemRenderer")))
+      .map(parseCarouselEntry)
       .filter((item): item is ArtistItem => item !== null)
   }
 }
