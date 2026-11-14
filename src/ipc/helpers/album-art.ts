@@ -1,7 +1,13 @@
 import { GET_ALBUM_ART } from "@ipc/types"
 import { ipcMain, net } from "electron"
 
-const ALLOWED_HOSTS = [".googleusercontent.com", ".ytimg.com"]
+const ALLOWED_HOSTS = [
+  ".googleusercontent.com",
+  ".ytimg.com",
+  ".ggpht.com",
+  "www.gstatic.com",
+  "music.youtube.com"
+]
 const MAX_CACHED = 300
 
 // Keyed by URL. Holds the promise so a repeated request joins one already in flight.
