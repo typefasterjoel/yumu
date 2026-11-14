@@ -121,7 +121,7 @@ function Settings() {
                 <HeadphonesIcon className="size-4" />
                 Audio Output
               </h4>
-              <h5 className="text-muted-foreground text-sm">
+              <h5 className="text-muted-foreground mt-1 text-xs">
                 Select the audio output device for Yumu
               </h5>
             </div>
@@ -150,7 +150,7 @@ function Settings() {
                 <LiaDiscord className="size-4" />
                 Discord
               </h4>
-              <h5 className="text-muted-foreground text-sm">
+              <h5 className="text-muted-foreground mt-1 text-xs">
                 Update Discord status with song information
               </h5>
             </div>
@@ -170,7 +170,7 @@ function Settings() {
                 Yumu UI
                 <Badge variant="secondary">Alpha</Badge>
               </h4>
-              <h5 className="text-muted-foreground text-sm">
+              <h5 className="text-muted-foreground mt-1 text-xs leading-relaxed">
                 {`Try Yumu's own interface in place of the default YouTube Music. Some features are still missing; switch it off any time to go back.`}
               </h5>
             </div>
