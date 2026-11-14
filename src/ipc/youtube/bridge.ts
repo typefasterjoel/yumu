@@ -66,7 +66,7 @@ export type QueueSnapshot = {
   repeat: "none" | "all" | "one"
 }
 
-export type InnertubeEndpoint = "search" | "browse" | "next"
+export type InnertubeEndpoint = "search" | "browse"
 
 export type PlayerApiState = {
   status: PlaybackStatus
