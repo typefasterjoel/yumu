@@ -11,46 +11,83 @@ import { ipcMain } from "electron"
 const clientId = "1286520235893198899"
 let discordClient: Client | null = null
 let initialized = false
+let wanted = false
+let connecting = false
+let reconnectTimer: NodeJS.Timeout | null = null
+let watchdog: NodeJS.Timeout | null = null
+let lastActivity: { song: SongInfo; state: string; at: number } | null = null
 
-const maxTries = 5
-let currentTry = 0
 const retryDelay = 10000 // 10 seconds
-let isRetrying = false
+const watchdogInterval = 5000
 
-export async function initializeDiscordPresence() {
-  if (initialized || isRetrying) return
+function scheduleReconnect() {
+  if (!wanted || reconnectTimer) return
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null
+    connect()
+  }, retryDelay)
+}
+
+function dropClient() {
+  const client = discordClient
+  discordClient = null
+  initialized = false
+  client?.removeAllListeners()
+  client?.destroy().catch(() => {})
+}
+
+/** A request on a dead connection means the "disconnected" event was missed, so reconnect here. */
+function recoverIfDisconnected(client: Client | null) {
+  if (!client || client !== discordClient || client.isConnected) return
+  console.warn("Discord connection lost; reconnecting.")
+  dropClient()
+  scheduleReconnect()
+}
+
+async function connect() {
+  if (!wanted || initialized || connecting) return
+
+  connecting = true
+  const client = new Client({ clientId })
+  discordClient = client
+  client.on("ready", () => {
+    initialized = true
+    console.info("Discord connected")
+    if (!lastActivity) return
+    const { song, state, at } = lastActivity
+    const elapsed = state === "paused" ? 0 : (Date.now() - at) / 1000
+    updateDiscordActivity({ ...song, currentTime: song.currentTime + elapsed }, state)
+  })
+  // Discord closing or restarting drops the socket; keep trying until it is back.
+  client.on("disconnected", () => {
+    if (discordClient !== client) return
+    console.warn("Discord disconnected; reconnecting.")
+    dropClient()
+    scheduleReconnect()
+  })
 
   try {
-    isRetrying = true
-    discordClient = new Client({ clientId: clientId })
-    discordClient.on("ready", () => {
-      initialized = true
-      isRetrying = false
-      currentTry = 0 // Reset try counter on success
-    })
-    console.log("Initializing Discord")
-    await discordClient.login().catch((error) => {
-      console.error("Failed to login to Discord RPC:", error)
-      if (!initialized && currentTry < maxTries) {
-        currentTry++
-        setTimeout(() => {
-          isRetrying = false
-          initializeDiscordPresence()
-        }, retryDelay)
-      } else {
-        isRetrying = false
-        if (currentTry >= maxTries) {
-          console.error("Max retries reached for Discord RPC initialization.")
-        }
-      }
-    })
+    await client.login()
   } catch (error) {
-    isRetrying = false
-    console.error("Failed to initialize Discord presence:", error)
+    console.error("Failed to login to Discord RPC:", error)
+    if (discordClient === client) dropClient()
+    scheduleReconnect()
+  } finally {
+    connecting = false
   }
 }
 
+export async function initializeDiscordPresence() {
+  wanted = true
+  // Discord can quit without the socket reporting it, so check the connection now and then.
+  watchdog ??= setInterval(() => {
+    if (initialized) recoverIfDisconnected(discordClient)
+  }, watchdogInterval)
+  await connect()
+}
+
 export async function updateDiscordActivity(song: SongInfo, state: string) {
+  lastActivity = { song, state, at: Date.now() }
   if (!initialized) return
 
   try {
@@ -73,10 +110,12 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
       activity.endTimestamp = undefined
     }
 
+    const client = discordClient
     try {
-      await discordClient?.user?.setActivity(activity)
+      await client?.user?.setActivity(activity)
     } catch (error) {
       console.error("Failed to update Discord activity:", error)
+      recoverIfDisconnected(client)
     }
   } catch (error) {
     console.error("Failed to update Discord activity:", error)
@@ -85,27 +124,37 @@ export async function updateDiscordActivity(song: SongInfo, state: string) {
 
 /** Removes the current activity but keeps the Discord connection open for the next song. */
 export async function resetDiscordActivity() {
+  lastActivity = null
   if (!initialized) return
 
+  const client = discordClient
   try {
-    await discordClient?.user?.clearActivity()
+    await client?.user?.clearActivity()
   } catch (error) {
     console.error("Failed to reset Discord activity:", error)
+    recoverIfDisconnected(client)
   }
 }
 
 export async function clearDiscordActivity() {
-  if (!initialized) return
+  wanted = false
+  lastActivity = null
+  if (watchdog) clearInterval(watchdog)
+  watchdog = null
+  if (reconnectTimer) clearTimeout(reconnectTimer)
+  reconnectTimer = null
+  if (!initialized) {
+    dropClient()
+    return
+  }
 
-  await discordClient?.user?.clearActivity()
-  await discordClient?.destroy()
-  initialized = false
-  discordClient = null
+  await discordClient?.user?.clearActivity().catch(() => {})
+  dropClient()
 }
 
 export function discordListeners() {
   ipcMain.handle(TOGGLE_DISCORD, async (_, enabled: boolean) => {
-    if (enabled && !initialized) {
+    if (enabled) {
       await initializeDiscordPresence()
     } else {
       await clearDiscordActivity()
