@@ -11,6 +11,21 @@ const SEEK_SETTLE_TOLERANCE_SECONDS = 2
 // Stop waiting for a seek to land after this long, so a failed seek can't pin the position.
 const SEEK_SETTLE_TIMEOUT_MS = 3000
 
+const sameTrack = (a: Track | null, b: Track | null): boolean =>
+  a === b ||
+  (a !== null &&
+    b !== null &&
+    a.videoId === b.videoId &&
+    a.title === b.title &&
+    a.artist === b.artist &&
+    a.album === b.album &&
+    a.albumId === b.albumId &&
+    a.albumArt === b.albumArt &&
+    a.artists.length === b.artists.length &&
+    a.artists.every(
+      (artist, i) => artist.name === b.artists[i].name && artist.browseId === b.artists[i].browseId
+    ))
+
 type PendingSeek = { seconds: number; expiresAt: number }
 
 type PlayerState = {
@@ -83,26 +98,28 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()((set) => ({
         state.track?.videoId === videoId &&
         Math.abs(position - pendingSeek.seconds) > SEEK_SETTLE_TOLERANCE_SECONDS
 
+      const nextTrack: Track | null = title
+        ? {
+            videoId,
+            title,
+            artist,
+            // Like the art, these are scraped from the DOM and can read empty for a moment (the
+            // player bar re-rendering, say); keep the last good ones for the same song instead of
+            // blanking them.
+            artists: artists.length
+              ? artists
+              : state.track?.videoId === videoId
+                ? state.track.artists
+                : [],
+            album,
+            albumId: albumId ?? (state.track?.videoId === videoId ? state.track.albumId : null),
+            albumArt: albumArt || (state.track?.videoId === videoId ? state.track.albumArt : "")
+          }
+        : null
+
       return {
         status,
-        track: title
-          ? {
-              videoId,
-              title,
-              artist,
-              // Like the art, these are scraped from the DOM and can read empty for a moment (the
-              // player bar re-rendering, say); keep the last good ones for the same song instead of
-              // blanking them.
-              artists: artists.length
-                ? artists
-                : state.track?.videoId === videoId
-                  ? state.track.artists
-                  : [],
-              album,
-              albumId: albumId ?? (state.track?.videoId === videoId ? state.track.albumId : null),
-              albumArt: albumArt || (state.track?.videoId === videoId ? state.track.albumArt : "")
-            }
-          : null,
+        track: sameTrack(state.track, nextTrack) ? state.track : nextTrack,
         playlistId,
         duration,
         volume,
