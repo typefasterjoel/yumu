@@ -20,6 +20,7 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  identity: "-"
   entitlementsInherit: build/entitlements.mac.plist
   icon: build/icons/icon.icns
   executableName: Yumu
