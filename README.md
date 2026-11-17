@@ -10,6 +10,14 @@ This is an electron app wrapper for YouTube music that helps deal with some miss
 - **Discord Presence** - Display what you're currently listening to to your Discord
 - **Yumu UI (alpha)** - An optional interface of Yumu's own, built on top of YouTube Music: Home, Library, search, a queue panel and player controls. It's off by default and can be turned on in Settings. Some features are still missing, and switching it off returns you to the regular YouTube Music page.
 
+## macOS
+
+The macOS build isn't signed with an Apple Developer certificate, so Gatekeeper will warn the first time you open it. Open System Settings → Privacy & Security and choose **Open Anyway**. If macOS says the app is damaged instead, run this once and open it again:
+
+```bash
+xattr -cr /Applications/Yumu.app
+```
+
 ## For Development
 
 If you wish you contribute to the development of this application, you can pull the repo and install it on your machine by running `pnpm install` to run use the command `pnpm dev`.
